@@ -79,16 +79,30 @@ Return ONLY the formatted quote text. No extra commentary.`;
         res.on('data', (chunk) => data += chunk);
         res.on('end', () => {
           try {
-            resolve(JSON.parse(data));
+            const parsed = JSON.parse(data);
+            console.log('API Response:', JSON.stringify(parsed, null, 2));
+            resolve(parsed);
           } catch (e) {
+            console.error('JSON Parse Error:', e);
+            console.error('Raw data:', data);
             reject(e);
           }
         });
       });
-      req.on('error', reject);
+      req.on('error', (err) => {
+        console.error('Request error:', err);
+        reject(err);
+      });
       req.write(requestData);
       req.end();
     });
+
+    console.log('Checking API response structure...');
+    
+    if (apiResponse.error) {
+      console.error('Anthropic API Error:', apiResponse.error);
+      throw new Error(`Anthropic API Error: ${apiResponse.error.message || JSON.stringify(apiResponse.error)}`);
+    }
 
     if (apiResponse.content && apiResponse.content[0]) {
       return {
@@ -102,6 +116,7 @@ Return ONLY the formatted quote text. No extra commentary.`;
         })
       };
     } else {
+      console.error('Unexpected API response structure:', JSON.stringify(apiResponse, null, 2));
       throw new Error('Invalid response from AI');
     }
 
