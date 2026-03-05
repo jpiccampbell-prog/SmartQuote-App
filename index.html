@@ -737,9 +737,44 @@ ${quoteText}
       });
     }
 
-    // Upgrade to Pro placeholder
-    function upgradeToPro() {
-      alert('Pro upgrade coming soon! You\'ll get unlimited quotes for $29/month.');
+    // Upgrade to Pro with Stripe
+    async function upgradeToPro() {
+      if (!window.currentUser) {
+        alert('Please sign in first');
+        return;
+      }
+
+      if (window.currentUser.plan === 'pro') {
+        alert('You\'re already a Pro member!');
+        return;
+      }
+
+      try {
+        // Create Stripe checkout session
+        const response = await fetch('/.netlify/functions/create-checkout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userId: window.currentUser.uid,
+            email: window.currentUser.email
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create checkout session');
+        }
+
+        const data = await response.json();
+        
+        // Redirect to Stripe checkout
+        window.location.href = data.url;
+        
+      } catch (error) {
+        console.error('Error upgrading to Pro:', error);
+        alert('Error starting checkout. Please try again.');
+      }
     }
 
     // Show saved quotes placeholder
