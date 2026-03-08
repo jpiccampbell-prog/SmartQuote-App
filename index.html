@@ -961,6 +961,8 @@ ${quoteText}
       
       // Extract the current total from the quote
       const quoteText = currentQuote;
+      
+      // Find TOTAL line (more specific pattern)
       const totalMatch = quoteText.match(/TOTAL:\s*\$?([\d,]+\.?\d*)/i);
       
       if (!totalMatch) {
@@ -972,9 +974,10 @@ ${quoteText}
       const taxAmount = subtotal * (taxPercent / 100);
       const newTotal = subtotal + taxAmount;
       
-      // Update the quote text with tax
+      // Replace TOTAL: line with SUBTOTAL/TAX/TOTAL lines
+      // Use a more specific replacement to avoid duplicates
       let updatedQuote = quoteText.replace(
-        /TOTAL:\s*\$?([\d,]+\.?\d*)/i,
+        /^TOTAL:\s*\$?([\d,]+\.?\d*)$/im,
         `SUBTOTAL: $${subtotal.toFixed(2)}\nTAX (${taxPercent}%): $${taxAmount.toFixed(2)}\nTOTAL: $${newTotal.toFixed(2)}`
       );
       
