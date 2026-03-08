@@ -16,41 +16,48 @@ exports.handler = async function(event, context) {
 
 Job Description: ${jobDescription}
 
-Generate a complete quote that includes:
-1. Professional project description (2-3 sentences)
-2. Detailed line items with individual prices (be specific and realistic)
-3. Labor costs (itemized)
-4. Materials (if applicable, itemized)
-5. Total cost (sum of all items)
-6. Payment terms: "50% deposit required, balance due upon completion"
-7. Estimated timeline (be realistic for this type of work)
-8. Warranty/guarantee: "1-year workmanship guarantee" or similar
+Generate ONLY the quote content with these sections:
+1. PROJECT DESCRIPTION (2-3 sentences explaining the work)
+2. LINE ITEMS (itemized list with prices)
+3. LABOR COSTS (if applicable)
+4. MATERIALS (if applicable)
+5. TOTAL COST
+6. PAYMENT TERMS
+7. ESTIMATED TIMELINE
+8. WARRANTY/GUARANTEE
 
-Make the pricing realistic and competitive for the ${tradeType} industry. The quote is for a client named ${clientName}.
+DO NOT include:
+- Company name
+- Client name  
+- Date
+- "Quote for [client]" or similar headers
+- Contact information
 
-Format the quote professionally with clear sections and line breaks. Use this structure:
+Make pricing realistic and competitive for the ${tradeType} industry.
+
+Format like this:
 
 PROJECT DESCRIPTION:
-[2-3 sentence description]
+[2-3 sentence description of the work to be performed]
 
 LINE ITEMS:
 1. [Item description] ........................ $[price]
 2. [Item description] ........................ $[price]
-[etc]
+[continue for all items]
 
-TOTAL: $[sum]
+TOTAL: $[sum of all items]
 
 PAYMENT TERMS:
 50% deposit required to begin work
 Balance due upon completion
 
 TIMELINE:
-[Realistic estimate]
+[Realistic time estimate for this type of work]
 
 WARRANTY:
 [Warranty details]
 
-Return ONLY the formatted quote text. No extra commentary.`;
+Return ONLY the formatted quote content. No extra commentary or meta information.`;
 
     const requestData = JSON.stringify({
       model: 'claude-sonnet-4-20250514',
