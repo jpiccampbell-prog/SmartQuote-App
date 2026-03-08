@@ -278,158 +278,39 @@
 
       <!-- QUOTE DISPLAY -->
       <div id="quoteDisplay" class="hidden bg-white rounded-lg shadow-lg p-8">
-        <div class="mb-6">
-          <h4 class="text-2xl font-bold text-gray-800 mb-2">Your Professional Quote</h4>
-          <p class="text-gray-600">Edit prices, add items, and adjust tax below</p>
-        </div>
-
-        <!-- Company & Client Info -->
-        <div class="bg-blue-50 border-l-4 border-blue-600 p-4 mb-6">
-          <div class="grid md:grid-cols-2 gap-4">
-            <div>
-              <p class="text-sm text-gray-600">Company</p>
-              <p class="font-bold text-gray-800" id="displayCompanyName"></p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-600">Client</p>
-              <p class="font-bold text-gray-800" id="displayClientName"></p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Project Description -->
-        <div class="mb-6">
-          <label class="block text-sm font-semibold text-gray-700 mb-2">Project Description</label>
-          <textarea 
-            id="editableDescription" 
-            class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            rows="3"
-          ></textarea>
-        </div>
-
-        <!-- Line Items Table -->
-        <div class="mb-6">
-          <div class="flex justify-between items-center mb-3">
-            <label class="block text-sm font-semibold text-gray-700">Line Items</label>
-            <button onclick="addLineItem()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm font-semibold">
-              + Add Item
-            </button>
-          </div>
-          
-          <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-              <thead>
-                <tr class="bg-gray-100">
-                  <th class="border p-3 text-left text-sm font-semibold">Description</th>
-                  <th class="border p-3 text-left text-sm font-semibold w-32">Quantity</th>
-                  <th class="border p-3 text-left text-sm font-semibold w-32">Price</th>
-                  <th class="border p-3 text-left text-sm font-semibold w-32">Total</th>
-                  <th class="border p-3 text-center text-sm font-semibold w-20">Delete</th>
-                </tr>
-              </thead>
-              <tbody id="lineItemsTable">
-                <!-- Line items will be populated here -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Totals Section -->
-        <div class="bg-gray-50 rounded-lg p-6 mb-6">
-          <div class="max-w-md ml-auto space-y-3">
-            <div class="flex justify-between text-lg">
-              <span class="font-semibold">Subtotal:</span>
-              <span id="subtotalAmount" class="font-bold">$0.00</span>
-            </div>
-            
-            <div class="flex justify-between items-center">
-              <label class="font-semibold">Tax:</label>
-              <div class="flex items-center gap-2">
-                <input 
-                  type="number" 
-                  id="taxRate" 
-                  class="w-20 px-3 py-2 border rounded text-right"
-                  value="0"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  onchange="recalculateTotal()"
-                >
-                <span>%</span>
-                <span id="taxAmount" class="font-bold w-24 text-right">$0.00</span>
-              </div>
-            </div>
-            
-            <div class="border-t-2 border-gray-300 pt-3 flex justify-between text-2xl">
-              <span class="font-bold">TOTAL:</span>
-              <span id="totalAmount" class="font-bold text-blue-600">$0.00</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Payment Terms & Timeline -->
-        <div class="grid md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Payment Terms</label>
-            <textarea 
-              id="paymentTerms" 
-              class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              rows="3"
-            >50% deposit required to begin work
-Balance due upon completion</textarea>
-          </div>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-2">Timeline</label>
-            <textarea 
-              id="timeline" 
-              class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              rows="3"
-            ></textarea>
-          </div>
-        </div>
-
-        <!-- Warranty -->
-        <div class="mb-8">
-          <label class="block text-sm font-semibold text-gray-700 mb-2">Warranty/Guarantee</label>
-          <textarea 
-            id="warranty" 
-            class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            rows="2"
-          >1-year workmanship guarantee</textarea>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="space-y-4">
-          <div class="flex gap-4">
-            <button onclick="finalizeQuote()" class="flex-1 bg-blue-600 text-white px-6 py-4 rounded-lg font-bold text-lg hover:bg-blue-700">
-              ✓ Finalize Quote
-            </button>
-          </div>
-          <div class="flex gap-4">
-            <button onclick="saveQuote()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700">
-              💾 Save Quote
-            </button>
-            <button onclick="showQuoteForm()" class="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700">
-              🔄 Start New Quote
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- FINALIZED QUOTE VIEW -->
-      <div id="finalizedQuoteDisplay" class="hidden bg-white rounded-lg shadow-lg p-8">
         <div class="flex justify-between items-start mb-6">
-          <h4 class="text-2xl font-bold text-gray-800">Finalized Quote</h4>
-          <button onclick="editQuote()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
-            ✏️ Edit Quote
-          </button>
+          <h4 class="text-2xl font-bold text-gray-800">Your Professional Quote</h4>
         </div>
         
-        <div id="finalQuoteContent" class="prose max-w-none mb-8">
-          <!-- Finalized quote will appear here -->
+        <div id="quoteContent" class="prose max-w-none">
+          <!-- AI-generated quote will appear here -->
         </div>
 
-        <div class="space-y-4">
+        <!-- Tax Addition -->
+        <div class="mt-6 bg-gray-50 rounded-lg p-4 border-2 border-blue-200">
+          <div class="flex items-center justify-between mb-3">
+            <label class="font-semibold text-gray-700">Add Tax (Optional):</label>
+            <div class="flex items-center gap-3">
+              <input 
+                type="number" 
+                id="taxPercentage" 
+                class="w-24 px-3 py-2 border rounded text-right"
+                value="0"
+                min="0"
+                max="100"
+                step="0.1"
+                placeholder="0"
+              >
+              <span class="font-semibold">%</span>
+              <button onclick="addTaxToQuote()" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-semibold">
+                Calculate Tax
+              </button>
+            </div>
+          </div>
+          <p class="text-sm text-gray-600">Enter tax percentage and click to add tax to the total</p>
+        </div>
+
+        <div class="mt-8 space-y-4">
           <div class="flex gap-4">
             <button onclick="emailQuote()" class="flex-1 bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 flex items-center justify-center gap-2">
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -447,7 +328,7 @@ Balance due upon completion</textarea>
           </div>
           <div class="flex gap-4">
             <button onclick="saveQuote()" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
-              💾 Save Quote
+              Save Quote
             </button>
             <button onclick="showQuoteForm()" class="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700">
               Generate Another
@@ -455,6 +336,9 @@ Balance due upon completion</textarea>
             <button onclick="copyQuote()" class="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700">
               Copy to Clipboard
             </button>
+          </div>
+        </div>
+      </div>
 [1419 lines total]
           </div>
         </div>
@@ -1032,255 +916,16 @@ Balance due upon completion</textarea>
       }
     }
 
-    // Store line items
-    let lineItems = [];
-    let quoteDescription = '';
-    let quoteTimeline = '';
-    let quoteWarranty = '1-year workmanship guarantee';
-
-    // Display quote as editable table
+    // Display generated quote (simple version - AI does all the work)
     function displayQuote(quoteText, companyName, clientName) {
-      // Parse AI-generated quote into line items
-      parseQuoteIntoLineItems(quoteText);
-      
-      // Set company and client names
-      document.getElementById('displayCompanyName').textContent = companyName;
-      document.getElementById('displayClientName').textContent = clientName;
-      
-      // Populate editable fields
-      document.getElementById('editableDescription').value = quoteDescription;
-      document.getElementById('timeline').value = quoteTimeline;
-      document.getElementById('warranty').value = quoteWarranty;
-      
-      // Render line items table
-      renderLineItemsTable();
-      
-      // Calculate totals
-      recalculateTotal();
-      
-      // Hide loading, show editable quote
-      document.getElementById('loadingSpinner').classList.add('hidden');
-      document.getElementById('quoteDisplay').classList.remove('hidden');
-      document.getElementById('finalizedQuoteDisplay').classList.add('hidden');
-    }
-
-    // Parse AI quote text into structured line items
-    function parseQuoteIntoLineItems(quoteText) {
-      lineItems = [];
-      const lines = quoteText.split('\n');
-      let inLineItems = false;
-      
-      for (let line of lines) {
-        line = line.trim();
-        
-        // Extract project description
-        if (line.includes('PROJECT DESCRIPTION:')) {
-          const descIndex = lines.indexOf(line);
-          let desc = '';
-          for (let i = descIndex + 1; i < lines.length; i++) {
-            if (lines[i].trim() === '' || lines[i].includes('LINE ITEMS:')) break;
-            desc += lines[i].trim() + ' ';
-          }
-          quoteDescription = desc.trim();
-        }
-        
-        // Extract timeline
-        if (line.includes('TIMELINE:')) {
-          const timeIndex = lines.indexOf(line);
-          let time = '';
-          for (let i = timeIndex + 1; i < lines.length; i++) {
-            if (lines[i].trim() === '' || lines[i].includes('WARRANTY:')) break;
-            time += lines[i].trim() + ' ';
-          }
-          quoteTimeline = time.trim();
-        }
-        
-        // Extract warranty
-        if (line.includes('WARRANTY:')) {
-          const warIndex = lines.indexOf(line);
-          let war = '';
-          for (let i = warIndex + 1; i < lines.length; i++) {
-            if (lines[i].trim() === '') break;
-            war += lines[i].trim() + ' ';
-          }
-          quoteWarranty = war.trim() || '1-year workmanship guarantee';
-        }
-        
-        // Parse line items
-        if (line.includes('LINE ITEMS:')) {
-          inLineItems = true;
-          continue;
-        }
-        
-        if (inLineItems && line.match(/^\d+\./)) {
-          // Extract price from line
-          const priceMatch = line.match(/\$?([\d,]+\.?\d*)/);
-          if (priceMatch) {
-            const price = parseFloat(priceMatch[1].replace(/,/g, ''));
-            const description = line.replace(/^\d+\./, '').replace(/\$?[\d,]+\.?\d*/, '').replace(/\.+/g, '').trim();
-            
-            lineItems.push({
-              description: description,
-              quantity: 1,
-              price: price
-            });
-          }
-        }
-        
-        if (line.includes('TOTAL:') || line.includes('PAYMENT TERMS:')) {
-          inLineItems = false;
-        }
-      }
-      
-      // If no line items found, create a default one
-      if (lineItems.length === 0) {
-        lineItems.push({
-          description: 'Project cost (edit to add detail)',
-          quantity: 1,
-          price: 0
-        });
-      }
-    }
-
-    // Render line items table
-    function renderLineItemsTable() {
-      const tbody = document.getElementById('lineItemsTable');
-      tbody.innerHTML = '';
-      
-      lineItems.forEach((item, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td class="border p-2">
-            <input 
-              type="text" 
-              class="w-full px-2 py-1 border rounded" 
-              value="${item.description}"
-              onchange="updateLineItem(${index}, 'description', this.value)"
-            >
-          </td>
-          <td class="border p-2">
-            <input 
-              type="number" 
-              class="w-full px-2 py-1 border rounded text-right" 
-              value="${item.quantity}"
-              min="0"
-              step="0.01"
-              onchange="updateLineItem(${index}, 'quantity', this.value)"
-            >
-          </td>
-          <td class="border p-2">
-            <input 
-              type="number" 
-              class="w-full px-2 py-1 border rounded text-right" 
-              value="${item.price.toFixed(2)}"
-              min="0"
-              step="0.01"
-              onchange="updateLineItem(${index}, 'price', this.value)"
-            >
-          </td>
-          <td class="border p-2 text-right font-semibold">
-            $${(item.quantity * item.price).toFixed(2)}
-          </td>
-          <td class="border p-2 text-center">
-            <button onclick="deleteLineItem(${index})" class="text-red-600 hover:text-red-800">
-              🗑️
-            </button>
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
-
-    // Update line item
-    function updateLineItem(index, field, value) {
-      if (field === 'quantity' || field === 'price') {
-        lineItems[index][field] = parseFloat(value) || 0;
-      } else {
-        lineItems[index][field] = value;
-      }
-      renderLineItemsTable();
-      recalculateTotal();
-    }
-
-    // Add new line item
-    function addLineItem() {
-      lineItems.push({
-        description: 'New item',
-        quantity: 1,
-        price: 0
-      });
-      renderLineItemsTable();
-      recalculateTotal();
-    }
-
-    // Delete line item
-    function deleteLineItem(index) {
-      if (lineItems.length === 1) {
-        alert('You must have at least one line item');
-        return;
-      }
-      lineItems.splice(index, 1);
-      renderLineItemsTable();
-      recalculateTotal();
-    }
-
-    // Recalculate totals
-    function recalculateTotal() {
-      const subtotal = lineItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-      const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
-      const taxAmount = subtotal * (taxRate / 100);
-      const total = subtotal + taxAmount;
-      
-      document.getElementById('subtotalAmount').textContent = '$' + subtotal.toFixed(2);
-      document.getElementById('taxAmount').textContent = '$' + taxAmount.toFixed(2);
-      document.getElementById('totalAmount').textContent = '$' + total.toFixed(2);
-    }
-
-    // Finalize quote (lock it and show final view)
-    function finalizeQuote() {
-      const companyName = document.getElementById('displayCompanyName').textContent;
-      const clientName = document.getElementById('displayClientName').textContent;
-      const description = document.getElementById('editableDescription').value;
-      const paymentTerms = document.getElementById('paymentTerms').value;
-      const timeline = document.getElementById('timeline').value;
-      const warranty = document.getElementById('warranty').value;
-      
-      const subtotal = lineItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-      const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
-      const taxAmount = subtotal * (taxRate / 100);
-      const total = subtotal + taxAmount;
-      
+      const quoteContent = document.getElementById('quoteContent');
       const today = new Date().toLocaleDateString('en-US', { 
         year: 'numeric', 
         month: 'long', 
         day: 'numeric' 
       });
       
-      // Build final quote text
-      let finalQuoteText = `PROJECT DESCRIPTION:\n${description}\n\nLINE ITEMS:\n`;
-      lineItems.forEach((item, index) => {
-        finalQuoteText += `${index + 1}. ${item.description}`;
-        if (item.quantity > 1) {
-          finalQuoteText += ` (${item.quantity} × $${item.price.toFixed(2)})`;
-        }
-        finalQuoteText += ` ........................ $${(item.quantity * item.price).toFixed(2)}\n`;
-      });
-      
-      finalQuoteText += `\nSUBTOTAL: $${subtotal.toFixed(2)}\n`;
-      if (taxRate > 0) {
-        finalQuoteText += `TAX (${taxRate}%): $${taxAmount.toFixed(2)}\n`;
-      }
-      finalQuoteText += `TOTAL: $${total.toFixed(2)}\n\n`;
-      finalQuoteText += `PAYMENT TERMS:\n${paymentTerms}\n\n`;
-      finalQuoteText += `TIMELINE:\n${timeline}\n\n`;
-      finalQuoteText += `WARRANTY:\n${warranty}`;
-      
-      // Store for later use
-      currentQuote = finalQuoteText;
-      
-      // Display finalized quote
-      const finalContent = document.getElementById('finalQuoteContent');
-      finalContent.innerHTML = `
+      const formattedQuote = `
         <div class="border-b-2 border-blue-600 pb-4 mb-6">
           <h2 class="text-3xl font-bold text-blue-600">${companyName}</h2>
           <p class="text-gray-600">Professional Quote</p>
@@ -1289,7 +934,7 @@ Balance due upon completion</textarea>
         </div>
         
         <div class="whitespace-pre-line text-gray-700">
-${finalQuoteText}
+${quoteText}
         </div>
         
         <div class="mt-8 pt-6 border-t-2 border-gray-200">
@@ -1298,17 +943,77 @@ ${finalQuoteText}
         </div>
       `;
       
-      // Show finalized view, hide editable view
-      document.getElementById('quoteDisplay').classList.add('hidden');
-      document.getElementById('finalizedQuoteDisplay').classList.remove('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      quoteContent.innerHTML = formattedQuote;
+      
+      // Hide loading, show quote
+      document.getElementById('loadingSpinner').classList.add('hidden');
+      document.getElementById('quoteDisplay').classList.remove('hidden');
     }
 
-    // Edit quote (go back to editable view)
-    function editQuote() {
-      document.getElementById('finalizedQuoteDisplay').classList.add('hidden');
-      document.getElementById('quoteDisplay').classList.remove('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Add tax to quote
+    function addTaxToQuote() {
+      const taxPercent = parseFloat(document.getElementById('taxPercentage').value) || 0;
+      
+      if (taxPercent === 0) {
+        alert('Please enter a tax percentage');
+        return;
+      }
+      
+      // Extract the current total from the quote
+      const quoteText = currentQuote;
+      const totalMatch = quoteText.match(/TOTAL:\s*\$?([\d,]+\.?\d*)/i);
+      
+      if (!totalMatch) {
+        alert('Could not find total in quote. Make sure the quote has been generated.');
+        return;
+      }
+      
+      const subtotal = parseFloat(totalMatch[1].replace(/,/g, ''));
+      const taxAmount = subtotal * (taxPercent / 100);
+      const newTotal = subtotal + taxAmount;
+      
+      // Update the quote text with tax
+      let updatedQuote = quoteText.replace(
+        /TOTAL:\s*\$?([\d,]+\.?\d*)/i,
+        `SUBTOTAL: $${subtotal.toFixed(2)}\nTAX (${taxPercent}%): $${taxAmount.toFixed(2)}\nTOTAL: $${newTotal.toFixed(2)}`
+      );
+      
+      // Update currentQuote
+      currentQuote = updatedQuote;
+      
+      // Re-display the quote with tax
+      const companyName = currentQuoteData.companyName || window.currentUser?.company || 'Your Company';
+      const clientName = currentQuoteData.clientName || 'Client';
+      
+      const quoteContent = document.getElementById('quoteContent');
+      const today = new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      
+      const formattedQuote = `
+        <div class="border-b-2 border-blue-600 pb-4 mb-6">
+          <h2 class="text-3xl font-bold text-blue-600">${companyName}</h2>
+          <p class="text-gray-600">Professional Quote</p>
+          <p class="text-sm text-gray-500">Date: ${today}</p>
+          <p class="text-sm text-gray-500">To: ${clientName}</p>
+        </div>
+        
+        <div class="whitespace-pre-line text-gray-700">
+${updatedQuote}
+        </div>
+        
+        <div class="mt-8 pt-6 border-t-2 border-gray-200">
+          <p class="text-sm text-gray-600 italic">This quote is valid for 30 days from the date above.</p>
+          <p class="text-sm text-gray-600 italic mt-2">Thank you for considering ${companyName} for your project!</p>
+        </div>
+      `;
+      
+      quoteContent.innerHTML = formattedQuote;
+      
+      // Show success message
+      alert(`✅ Tax added! ${taxPercent}% tax ($${taxAmount.toFixed(2)}) added to quote. New total: $${newTotal.toFixed(2)}`);
     }
 
     // Save quote to database
@@ -1795,12 +1500,7 @@ Thank you for considering ${quote.companyName} for your project!
     window.emailSavedQuote = emailSavedQuote;
     window.downloadQuotePDF = downloadQuotePDF;
     window.deleteQuote = deleteQuote;
-    window.updateLineItem = updateLineItem;
-    window.addLineItem = addLineItem;
-    window.deleteLineItem = deleteLineItem;
-    window.recalculateTotal = recalculateTotal;
-    window.finalizeQuote = finalizeQuote;
-    window.editQuote = editQuote;
+    window.addTaxToQuote = addTaxToQuote;
   </script>
 
 </body>
