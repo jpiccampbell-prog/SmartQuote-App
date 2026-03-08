@@ -6,6 +6,12 @@
   <title>SmartQuote - AI Quote Generator for Contractors</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script type="text/javascript">
+    (function(){
+      emailjs.init('ifXBFfbs2_okz6ha9');
+    })();
+  </script>
 </head>
 <body class="bg-gray-50">
 
@@ -239,16 +245,33 @@
           <!-- AI-generated quote will appear here -->
         </div>
 
-        <div class="mt-8 flex gap-4">
-          <button onclick="saveQuote()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700">
-            Save Quote
-          </button>
-          <button onclick="showQuoteForm()" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
-            Generate Another
-          </button>
-          <button onclick="copyQuote()" class="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700">
-            Copy to Clipboard
-          </button>
+        <div class="mt-8 space-y-4">
+          <div class="flex gap-4">
+            <button onclick="emailQuote()" class="flex-1 bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+              </svg>
+              Email Quote to Client
+            </button>
+            <button onclick="downloadPDF()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              </svg>
+              Download PDF
+            </button>
+          </div>
+          <div class="flex gap-4">
+            <button onclick="saveQuote()" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
+              Save Quote
+            </button>
+            <button onclick="showQuoteForm()" class="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700">
+              Generate Another
+            </button>
+            <button onclick="copyQuote()" class="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700">
+              Copy to Clipboard
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -340,6 +363,40 @@
           Already have an account? Sign in
         </button>
         <button type="button" onclick="hideSignup()" class="w-full text-gray-600 hover:underline mt-2">
+          Cancel
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- EMAIL QUOTE MODAL -->
+  <div id="emailQuoteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+      <h2 class="text-2xl font-bold mb-6">Email Quote to Client</h2>
+      <form onsubmit="sendEmailQuote(event)">
+        <div class="mb-4">
+          <label class="block text-gray-700 mb-2">Client Email</label>
+          <input 
+            type="email" 
+            id="emailClientEmail" 
+            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+            required
+          >
+          <p class="text-sm text-gray-500 mt-1">Quote will be sent to this email address</p>
+        </div>
+        <div class="mb-6">
+          <label class="block text-gray-700 mb-2">Client Name (Optional)</label>
+          <input 
+            type="text" 
+            id="emailClientName" 
+            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+            placeholder="Will use name from quote if left empty"
+          >
+        </div>
+        <button type="submit" class="w-full bg-purple-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-purple-700 mb-4">
+          Send Email
+        </button>
+        <button type="button" onclick="hideEmailModal()" class="w-full text-gray-600 hover:underline">
           Cancel
         </button>
       </form>
@@ -737,6 +794,58 @@ ${quoteText}
       });
     }
 
+    // Show email quote modal
+    function emailQuote() {
+      // Pre-fill client email if available from the quote form
+      const clientEmailFromForm = document.getElementById('clientName') ? 
+        (currentQuoteData.clientName || '') : '';
+      
+      document.getElementById('emailClientEmail').value = '';
+      document.getElementById('emailClientName').value = clientEmailFromForm;
+      document.getElementById('emailQuoteModal').classList.remove('hidden');
+    }
+
+    // Hide email modal
+    function hideEmailModal() {
+      document.getElementById('emailQuoteModal').classList.add('hidden');
+    }
+
+    // Send email quote
+    async function sendEmailQuote(event) {
+      event.preventDefault();
+      
+      const clientEmail = document.getElementById('emailClientEmail').value;
+      const clientName = document.getElementById('emailClientName').value || 
+                        currentQuoteData.clientName || 
+                        'Valued Client';
+      
+      // Prepare email parameters
+      const emailParams = {
+        to_email: clientEmail,
+        client_name: clientName,
+        company_name: currentQuoteData.companyName || window.currentUser.company,
+        job_description: currentQuoteData.jobDescription,
+        quote_text: currentQuote
+      };
+
+      try {
+        // Send email using EmailJS
+        await emailjs.send('service_s3g58wk', 'template_30tnsor', emailParams);
+        
+        alert('✅ Quote emailed successfully to ' + clientEmail + '!');
+        hideEmailModal();
+        
+        // Optionally save that this quote was emailed
+        if (window.currentUser) {
+          console.log('Quote emailed to:', clientEmail);
+        }
+        
+      } catch (error) {
+        console.error('Error sending email:', error);
+        alert('❌ Error sending email. Please try again or check the email address.');
+      }
+    }
+
     // Upgrade to Pro with Stripe
     async function upgradeToPro() {
       if (!window.currentUser) {
@@ -794,6 +903,9 @@ ${quoteText}
     window.copyQuote = copyQuote;
     window.upgradeToPro = upgradeToPro;
     window.showSavedQuotes = showSavedQuotes;
+    window.emailQuote = emailQuote;
+    window.hideEmailModal = hideEmailModal;
+    window.sendEmailQuote = sendEmailQuote;
   </script>
 
 </body>
