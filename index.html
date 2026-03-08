@@ -961,10 +961,29 @@ ${quoteText}
       
       let quoteText = currentQuote;
       
-      // Check if tax has already been added
+      // Check if tax has already been added - if so, strip it out completely
       if (quoteText.includes('SUBTOTAL:') && quoteText.includes('TAX (')) {
-        // Tax already added - remove the old tax lines and recalculate
-        quoteText = quoteText.replace(/SUBTOTAL:.*\nTAX \(.*\).*\nTOTAL:.*/i, 'TOTAL:');
+        // Remove all SUBTOTAL/TAX lines, keep only up to original TOTAL
+        const lines = quoteText.split('\n');
+        const filtered = [];
+        let skipNext = false;
+        
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          if (line.includes('SUBTOTAL:')) {
+            skipNext = true;
+            continue;
+          }
+          if (skipNext && (line.includes('TAX (') || line.includes('TOTAL:'))) {
+            if (line.includes('TOTAL:')) {
+              skipNext = false;
+            }
+            continue;
+          }
+          filtered.push(line);
+        }
+        
+        quoteText = filtered.join('\n');
       }
       
       // Find the original TOTAL line
@@ -979,11 +998,16 @@ ${quoteText}
       const taxAmount = subtotal * (taxPercent / 100);
       const newTotal = subtotal + taxAmount;
       
+      // Format amounts with proper $ signs and 2 decimal places
+      const formattedSubtotal = '$' + subtotal.toFixed(2);
+      const formattedTax = '$' + taxAmount.toFixed(2);
+      const formattedTotal = '$' + newTotal.toFixed(2);
+      
       // Replace TOTAL: line with SUBTOTAL/TAX/TOTAL lines
-      let updatedQuote = quoteText.replace(
-        /TOTAL:\s*\$?([\d,]+\.?\d*)/i,
-        `SUBTOTAL: $${subtotal.toFixed(2)}\nTAX (${taxPercent}%): $${taxAmount.toFixed(2)}\nTOTAL: $${newTotal.toFixed(2)}`
-      );
+      const totalLine = totalMatch[0];
+      const replacement = `SUBTOTAL: ${formattedSubtotal}\nTAX (${taxPercent}%): ${formattedTax}\nTOTAL: ${formattedTotal}`;
+      
+      let updatedQuote = quoteText.replace(totalLine, replacement);
       
       // Update currentQuote
       currentQuote = updatedQuote;
@@ -1020,7 +1044,7 @@ ${updatedQuote}
       quoteContent.innerHTML = formattedQuote;
       
       // Show success message
-      alert(`✅ Tax added! ${taxPercent}% tax ($${taxAmount.toFixed(2)}) added to quote. New total: $${newTotal.toFixed(2)}`);
+      alert(`✅ Tax added! ${taxPercent}% tax (${formattedTax}) added to quote. New total: ${formattedTotal}`);
     }
 
     // Save quote to database
