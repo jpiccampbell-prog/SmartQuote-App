@@ -790,22 +790,28 @@ async function showSavedQuotes() {
       container.innerHTML = '<div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">No saved quotes yet. Generate your first one!</div>';
     } else {
       container.innerHTML = '';
-      quotesSnapshot.forEach(doc => {
-        const quote = doc.data();
-        const quoteEl = document.createElement('div');
-        quoteEl.className = 'bg-white rounded-lg shadow-lg p-6';
-        quoteEl.innerHTML = `
-          <div class="flex justify-between items-start mb-4">
-            <div>
-              <h4 class="text-xl font-bold text-gray-800">${quote.clientName || 'Unnamed Client'}</h4>
-              <p class="text-sm text-gray-600">${quote.tradeType} • ${new Date(quote.createdAt).toLocaleDateString()}</p>
-            </div>
-          </div>
-          <div class="whitespace-pre-line text-gray-700 text-sm mb-4">${quote.quoteText.substring(0, 200)}...</div>
-          <div class="text-sm text-gray-500 italic">${quote.companyName}</div>
-        `;
-        container.appendChild(quoteEl);
-      });
+ quotesSnapshot.forEach(doc => {
+  const quote = doc.data();
+  const quoteEl = document.createElement('div');
+  quoteEl.className = 'bg-white rounded-lg shadow-lg p-6';
+  quoteEl.innerHTML = `
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <h4 class="text-xl font-bold text-gray-800">${quote.clientName || 'Unnamed Client'}</h4>
+        <p class="text-sm text-gray-600">${quote.tradeType} • ${new Date(quote.createdAt).toLocaleDateString()}</p>
+      </div>
+    </div>
+    <div class="whitespace-pre-line text-gray-700 text-sm mb-4">${quote.quoteText.substring(0, 200)}...</div>
+    <div class="text-sm text-gray-500 italic mb-4">${quote.companyName}</div>
+    <button 
+      onclick='viewFullQuote(${JSON.stringify(quote).replace(/'/g, "&#39;")})' 
+      class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700"
+    >
+      📄 View Full Quote
+    </button>
+  `;
+  container.appendChild(quoteEl);
+});
     }
   } catch (error) {
     console.error('Error loading saved quotes:', error);
@@ -814,7 +820,44 @@ async function showSavedQuotes() {
 }
 
 // Back to dashboard function
-function backToDashboard() {
+// View full saved quote
+function viewFullQuote(quote) {
+  // Set current quote data
+  currentQuote = quote.quoteText;
+  currentCompanyName = quote.companyName;
+  currentQuoteData = {
+    companyName: quote.companyName,
+    tradeType: quote.tradeType,
+    jobDescription: quote.jobDescription,
+    clientName: quote.clientName
+  };
+
+  // Hide saved quotes section, show quote section
+  document.getElementById('savedQuotesSection').classList.add('hidden');
+  document.getElementById('quoteSection').classList.remove('hidden');
+  document.getElementById('quoteForm').classList.add('hidden');
+  document.getElementById('loadingSpinner').classList.add('hidden');
+  document.getElementById('quoteDisplay').classList.remove('hidden');
+
+  // Display the quote
+  displayQuote(quote.quoteText, quote.companyName, quote.clientName);
+
+  // Replace action buttons to show "Back to Saved Quotes" instead of "Save Quote"
+  document.getElementById('quoteActions').innerHTML = `
+    <button onclick="backToDashboard()" class="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700">
+      Back to Dashboard
+    </button>
+    <button onclick="downloadPDF()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700">
+      Download PDF
+    </button>
+    <button onclick="copyQuote()" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
+      Copy to Clipboard
+    </button>
+  `;
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+    function backToDashboard() {
   document.getElementById('savedQuotesSection').classList.add('hidden');
   document.getElementById('quoteSection').classList.add('hidden');
   document.getElementById('dashboardSection').classList.remove('hidden');
@@ -834,6 +877,7 @@ function backToDashboard() {
     window.upgradeToPro = upgradeToPro;
     window.showSavedQuotes = showSavedQuotes;
   window.backToDashboard = backToDashboard;
+ window.viewFullQuote = viewFullQuote;
   </script>
 
 </body>
