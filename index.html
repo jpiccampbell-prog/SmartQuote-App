@@ -308,7 +308,143 @@
         <div id="quoteContent" class="prose max-w-none">
           <!-- AI-generated quote will appear here -->
         </div>
-
+<!-- TAX CALCULATOR -->
+<div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-6">
+  <h5 class="text-lg font-bold text-gray-800 mb-4">💰 Add Tax to Quote</h5>
+  
+  <div class="grid md:grid-cols-2 gap-4 mb-4">
+    <div>
+      <label class="block text-gray-700 font-semibold mb-2">Location</label>
+      <select id="taxLocation" onchange="updateTaxRate()" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+        <option value="">Select Province/State...</option>
+        
+        <!-- Canadian Provinces -->
+        <optgroup label="🇨🇦 Canada">
+          <option value="13">Ontario (HST 13%)</option>
+          <option value="15">Nova Scotia (HST 15%)</option>
+          <option value="15">New Brunswick (HST 15%)</option>
+          <option value="15">Newfoundland (HST 15%)</option>
+          <option value="15">Prince Edward Island (HST 15%)</option>
+          <option value="5">Alberta (GST 5%)</option>
+          <option value="5">British Columbia (GST 5% + PST 7%)</option>
+          <option value="11">Saskatchewan (GST 5% + PST 6%)</option>
+          <option value="12">Manitoba (GST 5% + PST 7%)</option>
+          <option value="14.975">Quebec (GST 5% + QST 9.975%)</option>
+        </optgroup>
+        
+        <!-- US States -->
+        <optgroup label="🇺🇸 United States">
+          <option value="0">Alaska (0%)</option>
+          <option value="0">Delaware (0%)</option>
+          <option value="0">Montana (0%)</option>
+          <option value="0">New Hampshire (0%)</option>
+          <option value="0">Oregon (0%)</option>
+          <option value="4">Alabama (4%)</option>
+          <option value="6.5">Arizona (6.5%)</option>
+          <option value="6.5">Arkansas (6.5%)</option>
+          <option value="7.25">California (7.25%)</option>
+          <option value="2.9">Colorado (2.9%)</option>
+          <option value="6.35">Connecticut (6.35%)</option>
+          <option value="6">Florida (6%)</option>
+          <option value="4">Georgia (4%)</option>
+          <option value="4">Hawaii (4%)</option>
+          <option value="6">Idaho (6%)</option>
+          <option value="6.25">Illinois (6.25%)</option>
+          <option value="7">Indiana (7%)</option>
+          <option value="6">Iowa (6%)</option>
+          <option value="6.5">Kansas (6.5%)</option>
+          <option value="6">Kentucky (6%)</option>
+          <option value="4.45">Louisiana (4.45%)</option>
+          <option value="5.5">Maine (5.5%)</option>
+          <option value="6">Maryland (6%)</option>
+          <option value="6.25">Massachusetts (6.25%)</option>
+          <option value="6">Michigan (6%)</option>
+          <option value="6.875">Minnesota (6.875%)</option>
+          <option value="7">Mississippi (7%)</option>
+          <option value="4.225">Missouri (4.225%)</option>
+          <option value="0">Montana (0%)</option>
+          <option value="5.5">Nebraska (5.5%)</option>
+          <option value="6.85">Nevada (6.85%)</option>
+          <option value="0">New Hampshire (0%)</option>
+          <option value="6.625">New Jersey (6.625%)</option>
+          <option value="5.125">New Mexico (5.125%)</option>
+          <option value="4">New York (4%)</option>
+          <option value="4.75">North Carolina (4.75%)</option>
+          <option value="5">North Dakota (5%)</option>
+          <option value="5.75">Ohio (5.75%)</option>
+          <option value="4.5">Oklahoma (4.5%)</option>
+          <option value="0">Oregon (0%)</option>
+          <option value="6">Pennsylvania (6%)</option>
+          <option value="7">Rhode Island (7%)</option>
+          <option value="6">South Carolina (6%)</option>
+          <option value="4.5">South Dakota (4.5%)</option>
+          <option value="7">Tennessee (7%)</option>
+          <option value="6.25">Texas (6.25%)</option>
+          <option value="6.1">Utah (6.1%)</option>
+          <option value="6">Vermont (6%)</option>
+          <option value="5.3">Virginia (5.3%)</option>
+          <option value="6.5">Washington (6.5%)</option>
+          <option value="6">West Virginia (6%)</option>
+          <option value="5">Wisconsin (5%)</option>
+          <option value="4">Wyoming (4%)</option>
+        </optgroup>
+        
+        <option value="custom">Custom Rate...</option>
+      </select>
+    </div>
+    
+    <div>
+      <label class="block text-gray-700 font-semibold mb-2">Tax Rate (%)</label>
+      <input 
+        type="number" 
+        id="customTaxRate" 
+        step="0.01" 
+        min="0" 
+        max="100"
+        placeholder="Enter custom rate"
+        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+        onchange="calculateTax()"
+      >
+    </div>
+  </div>
+  
+  <div class="grid md:grid-cols-2 gap-4 mb-4">
+    <div>
+      <label class="block text-gray-700 font-semibold mb-2">Subtotal (Before Tax)</label>
+      <input 
+        type="number" 
+        id="subtotalAmount" 
+        step="0.01" 
+        min="0"
+        placeholder="Enter quote amount"
+        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+        onchange="calculateTax()"
+      >
+    </div>
+    
+    <div>
+      <label class="block text-gray-700 font-semibold mb-2">Tax Amount</label>
+      <input 
+        type="text" 
+        id="taxAmount" 
+        readonly
+        class="w-full px-4 py-2 border rounded-lg bg-gray-100"
+        placeholder="$0.00"
+      >
+    </div>
+  </div>
+  
+  <div class="bg-blue-100 p-4 rounded-lg">
+    <div class="flex justify-between items-center">
+      <span class="text-lg font-bold text-gray-800">Total (Including Tax):</span>
+      <span class="text-2xl font-bold text-blue-600" id="totalWithTax">$0.00</span>
+    </div>
+  </div>
+  
+  <button onclick="addTaxToQuote()" class="mt-4 w-full bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700">
+    ✅ Add Tax to Quote
+  </button>
+</div>
         <div class="mt-8 flex gap-4" id="quoteActions">
           <button onclick="saveQuote()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700">
             Save Quote
@@ -816,7 +952,91 @@ document.getElementById('quoteActions').innerHTML = `
     function upgradeToPro() {
       alert('Pro upgrade coming soon! You\'ll get unlimited quotes for $29/month.');
     }
+// Update tax rate when location is selected
+function updateTaxRate() {
+  const location = document.getElementById('taxLocation').value;
+  const customTaxRate = document.getElementById('customTaxRate');
+  
+  if (location === 'custom') {
+    customTaxRate.disabled = false;
+    customTaxRate.value = '';
+  } else if (location === '') {
+    customTaxRate.disabled = true;
+    customTaxRate.value = '';
+  } else {
+    customTaxRate.disabled = true;
+    customTaxRate.value = location;
+  }
+  
+  calculateTax();
+}
 
+// Calculate tax amount
+function calculateTax() {
+  const subtotal = parseFloat(document.getElementById('subtotalAmount').value) || 0;
+  const taxRate = parseFloat(document.getElementById('customTaxRate').value) || 0;
+  
+  const taxAmount = subtotal * (taxRate / 100);
+  const total = subtotal + taxAmount;
+  
+  document.getElementById('taxAmount').value = '$' + taxAmount.toFixed(2);
+  document.getElementById('totalWithTax').textContent = '$' + total.toFixed(2);
+}
+
+// Add tax to quote
+function addTaxToQuote() {
+  const location = document.getElementById('taxLocation');
+  const subtotal = parseFloat(document.getElementById('subtotalAmount').value);
+  const taxRate = parseFloat(document.getElementById('customTaxRate').value);
+  const taxAmount = parseFloat(document.getElementById('taxAmount').value.replace('$', ''));
+  const total = parseFloat(document.getElementById('totalWithTax').textContent.replace('$', ''));
+  
+  if (!subtotal || !taxRate) {
+    alert('Please enter a subtotal and select/enter a tax rate');
+    return;
+  }
+  
+  const locationText = location.options[location.selectedIndex].text;
+  
+  // Add tax breakdown to quote
+  const quoteContent = document.getElementById('quoteContent');
+  const taxSection = `
+    <div class="mt-6 pt-6 border-t-2 border-gray-300">
+      <h3 class="text-xl font-bold text-gray-800 mb-3">Tax Calculation</h3>
+      <div class="space-y-2">
+        <div class="flex justify-between">
+          <span class="text-gray-700">Location:</span>
+          <span class="font-semibold">${locationText}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-700">Subtotal:</span>
+          <span class="font-semibold">$${subtotal.toFixed(2)}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-700">Tax (${taxRate}%):</span>
+          <span class="font-semibold">$${taxAmount.toFixed(2)}</span>
+        </div>
+        <div class="flex justify-between text-xl font-bold text-blue-600 pt-2 border-t-2">
+          <span>Total:</span>
+          <span>$${total.toFixed(2)}</span>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Insert tax section before the "valid for 30 days" footer
+  const existingContent = quoteContent.innerHTML;
+  const footerIndex = existingContent.indexOf('<div class="mt-8 pt-6 border-t-2 border-gray-200">');
+  
+  if (footerIndex !== -1) {
+    quoteContent.innerHTML = existingContent.substring(0, footerIndex) + taxSection + existingContent.substring(footerIndex);
+  }
+  
+  // Update current quote text
+  currentQuote = quoteContent.innerText;
+  
+  alert('✅ Tax added to quote successfully!');
+}
    // Show saved quotes
 async function showSavedQuotes() {
   if (!window.currentUser) {
@@ -932,6 +1152,9 @@ function viewFullQuote(quote) {
     window.showSavedQuotes = showSavedQuotes;
   window.backToDashboard = backToDashboard;
  window.viewFullQuote = viewFullQuote;
+ window.updateTaxRate = updateTaxRate;
+window.calculateTax = calculateTax;
+window.addTaxToQuote = addTaxToQuote;
   </script>
 
 </body>
