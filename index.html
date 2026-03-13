@@ -140,6 +140,22 @@
       </div>
     </div>
   </section>
+<!-- SAVED QUOTES SECTION -->
+  <section id="savedQuotesSection" class="py-16 bg-gray-50 hidden">
+    <div class="container mx-auto px-4 max-w-6xl">
+      <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-bold text-gray-800">Your Saved Quotes</h2>
+        <button onclick="backToDashboard()" class="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700">
+          Back to Dashboard
+        </button>
+      </div>
+      
+      <div id="savedQuotesListContainer" class="space-y-4">
+        <p class="text-gray-500">Loading quotes...</p>
+      </div>
+    </div>
+</div>
+  </section>
 
   <!-- QUOTE GENERATOR SECTION -->
   <section id="quoteSection" class="py-16 bg-gray-50 hidden">
@@ -239,7 +255,7 @@
           <!-- AI-generated quote will appear here -->
         </div>
 
-        <div class="mt-8 flex gap-4">
+        <div class="mt-8 flex gap-4" id="quoteActions">
           <button onclick="saveQuote()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700">
             Save Quote
           </button>
@@ -697,16 +713,21 @@ ${quoteText}
         alert('✅ Quote saved successfully!');
         window.currentUser.quotesThisMonth++;
         
-        // Refresh dashboard
-        const dashboardBtn = document.createElement('button');
-        dashboardBtn.onclick = () => {
-          document.getElementById('quoteSection').classList.add('hidden');
-          document.getElementById('dashboardSection').classList.remove('hidden');
-          window.loadRecentQuotes();
-        };
-        dashboardBtn.textContent = 'Back to Dashboard';
-        dashboardBtn.className = 'mt-4 bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700';
-        document.getElementById('quoteDisplay').appendChild(dashboardBtn);
+        // Replace the action buttons with "View Saved Quotes" button
+document.getElementById('quoteActions').innerHTML = `
+  <button onclick="showSavedQuotes()" class="w-full bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700">
+    📋 View Saved Quotes
+  </button>
+`;
+```
+
+---
+
+### **Step 3: Make Fix #2 - Add Saved Quotes section HTML**
+
+**Press Ctrl+F** and search for:
+```
+<!-- QUOTE GENERATOR SECTION -->
         
       } catch (error) {
         console.error('Error saving quote:', error);
@@ -742,10 +763,63 @@ ${quoteText}
       alert('Pro upgrade coming soon! You\'ll get unlimited quotes for $29/month.');
     }
 
-    // Show saved quotes placeholder
-    function showSavedQuotes() {
-      alert('Saved quotes view coming soon!');
+   // Show saved quotes
+async function showSavedQuotes() {
+  if (!window.currentUser) {
+    alert('Please sign in to view saved quotes');
+    return;
+  }
+
+  // Hide other sections
+  document.getElementById('dashboardSection').classList.add('hidden');
+  document.getElementById('quoteSection').classList.add('hidden');
+  document.getElementById('savedQuotesSection').classList.remove('hidden');
+
+  // Load saved quotes
+  try {
+    const quotesQuery = window.firestore.query(
+      window.firestore.collection(window.db, 'quotes'),
+      window.firestore.where('userId', '==', window.currentUser.uid),
+      window.firestore.orderBy('createdAt', 'desc')
+    );
+    
+    const quotesSnapshot = await window.firestore.getDocs(quotesQuery);
+    const container = document.getElementById('savedQuotesListContainer');
+    
+    if (quotesSnapshot.empty) {
+      container.innerHTML = '<div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">No saved quotes yet. Generate your first one!</div>';
+    } else {
+      container.innerHTML = '';
+      quotesSnapshot.forEach(doc => {
+        const quote = doc.data();
+        const quoteEl = document.createElement('div');
+        quoteEl.className = 'bg-white rounded-lg shadow-lg p-6';
+        quoteEl.innerHTML = `
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h4 class="text-xl font-bold text-gray-800">${quote.clientName || 'Unnamed Client'}</h4>
+              <p class="text-sm text-gray-600">${quote.tradeType} • ${new Date(quote.createdAt).toLocaleDateString()}</p>
+            </div>
+          </div>
+          <div class="whitespace-pre-line text-gray-700 text-sm mb-4">${quote.quoteText.substring(0, 200)}...</div>
+          <div class="text-sm text-gray-500 italic">${quote.companyName}</div>
+        `;
+        container.appendChild(quoteEl);
+      });
     }
+  } catch (error) {
+    console.error('Error loading saved quotes:', error);
+    container.innerHTML = '<div class="bg-white rounded-lg shadow p-8 text-center text-red-600">Error loading quotes. Please try again.</div>';
+  }
+}
+
+// Back to dashboard function
+function backToDashboard() {
+  document.getElementById('savedQuotesSection').classList.add('hidden');
+  document.getElementById('quoteSection').classList.add('hidden');
+  document.getElementById('dashboardSection').classList.remove('hidden');
+  window.loadRecentQuotes();
+}
 
     // Make functions available globally
     window.showLogin = showLogin;
@@ -759,6 +833,7 @@ ${quoteText}
     window.copyQuote = copyQuote;
     window.upgradeToPro = upgradeToPro;
     window.showSavedQuotes = showSavedQuotes;
+  window.backToDashboard = backToDashboard;
   </script>
 
 </body>
