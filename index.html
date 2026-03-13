@@ -925,8 +925,33 @@ document.getElementById('quoteActions').innerHTML = `
       }
     }
 
-    // Download quote as PDF
-    function downloadPDF() {
+ // Download quote as PDF (mobile-compatible)
+function downloadPDF() {
+  // Check if on mobile
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  
+  if (isMobile) {
+    // Mobile: Share as text file or use native share
+    const quoteText = document.getElementById('quoteContent').innerText;
+    const fileName = `Quote_${currentCompanyName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`;
+    
+    // Try to use native share API if available
+    if (navigator.share) {
+      navigator.share({
+        title: 'SmartQuote - Professional Quote',
+        text: quoteText,
+        files: [new File([quoteText], fileName, { type: 'text/plain' })]
+      }).catch(err => {
+        // Fallback: download as text file
+        downloadAsText(quoteText, fileName);
+      });
+    } else {
+      // Fallback: download as text file
+      downloadAsText(quoteText, fileName);
+    }
+  } else {
+    // Desktop: use jsPDF
+    try {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       
@@ -938,6 +963,25 @@ document.getElementById('quoteActions').innerHTML = `
       
       const fileName = `Quote_${currentCompanyName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(fileName);
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+      alert('PDF download not available. Use "Copy to Clipboard" instead.');
+    }
+  }
+}
+
+// Helper function to download as text file
+function downloadAsText(content, filename) {
+  const blob = new Blob([content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
     }
 
     // Copy quote to clipboard
