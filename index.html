@@ -2,10 +2,58 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SmartQuote - AI Quote Generator for Contractors</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  /* Prevent horizontal scroll and overflow */
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+    position: relative;
+  }
+  
+  /* Mobile-specific adjustments */
+  @media (max-width: 640px) {
+    /* Smaller text sizes on mobile */
+    h1 { font-size: 1.5rem !important; }
+    h2 { font-size: 1.75rem !important; }
+    h3 { font-size: 1.5rem !important; }
+    h4 { font-size: 1.25rem !important; }
+    
+    /* Smaller padding on containers */
+    .container { 
+      padding-left: 1rem !important; 
+      padding-right: 1rem !important; 
+    }
+    
+    /* Stack flex items vertically */
+    .flex { 
+      flex-direction: column !important;
+      gap: 0.5rem !important;
+    }
+    
+    /* Full width buttons on mobile */
+    button {
+      width: 100% !important;
+      margin-bottom: 0.5rem;
+    }
+    
+    /* Smaller hero stats */
+    .text-5xl { font-size: 2rem !important; }
+    .text-3xl { font-size: 1.5rem !important; }
+    .text-2xl { font-size: 1.25rem !important; }
+    .text-xl { font-size: 1.125rem !important; }
+  }
+  
+  /* Prevent word overflow */
+  * {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+</style>
 </head>
 <body class="bg-gray-50">
 
