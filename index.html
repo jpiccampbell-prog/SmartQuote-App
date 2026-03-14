@@ -901,84 +901,26 @@ ${quoteText}
           quotesThisMonth: window.currentUser.quotesThisMonth + 1
         }, { merge: true });
 
-        alert('✅ Quote saved successfully!');
+alert('✅ Quote saved successfully!');
         window.currentUser.quotesThisMonth++;
         
-        // Replace the action buttons with "View Saved Quotes" button
-document.getElementById('quoteActions').innerHTML = `
-  <button onclick="showSavedQuotes()" class="w-full bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700">
-    📋 View Saved Quotes
-  </button>
-`;
-```
-
----
-
-### **Step 3: Make Fix #2 - Add Saved Quotes section HTML**
-
-**Press Ctrl+F** and search for:
-```
-<!-- QUOTE GENERATOR SECTION -->
-        
+        // Replace the action buttons
+        document.getElementById('quoteActions').innerHTML = `
+          <button onclick="showQuoteForm()" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
+            Generate Another
+          </button>
+          <button onclick="showSavedQuotes()" class="flex-1 bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700">
+            📋 Saved Quotes
+          </button>
+          <button onclick="emailQuote()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700">
+            📧 Email
+          </button>
+        `;
       } catch (error) {
         console.error('Error saving quote:', error);
         alert('Error saving quote: ' + error.message);
       }
     }
-
-  // Check if on mobile
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  
-  if (isMobile) {
-    // Mobile: Share as text file or use native share
-    const quoteText = document.getElementById('quoteContent').innerText;
-    const fileName = `Quote_${currentCompanyName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`;
-    
-    // Try to use native share API if available
-    if (navigator.share) {
-      navigator.share({
-        title: 'SmartQuote - Professional Quote',
-        text: quoteText,
-        files: [new File([quoteText], fileName, { type: 'text/plain' })]
-      }).catch(err => {
-        // Fallback: download as text file
-        downloadAsText(quoteText, fileName);
-      });
-    } else {
-      // Fallback: download as text file
-      downloadAsText(quoteText, fileName);
-    }
-  } else {
-    // Desktop: use jsPDF
-    try {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      
-      const quoteText = document.getElementById('quoteContent').innerText;
-      const splitText = doc.splitTextToSize(quoteText, 180);
-      
-      doc.setFontSize(12);
-      doc.text(splitText, 15, 15);
-      
-      const fileName = `Quote_${currentCompanyName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-      doc.save(fileName);
-    } catch (error) {
-      console.error('PDF generation failed:', error);
-      alert('PDF download not available. Use "Copy to Clipboard" instead.');
-    }
-  }
-}
-
-  const blob = new Blob([content], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
 
     // Copy quote to clipboard
     function copyQuote() {
@@ -993,200 +935,189 @@ document.getElementById('quoteActions').innerHTML = `
       const quoteText = document.getElementById('quoteContent').innerText;
       const subject = `Quote from ${currentCompanyName}`;
       const body = encodeURIComponent(quoteText);
-      
-      // Open email client with pre-filled quote
       window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${body}`;
-   }
-      // Upgrade to Pro placeholder
+    }
+
+    // Upgrade to Pro placeholder
     function upgradeToPro() {
       alert('Pro upgrade coming soon! You\'ll get unlimited quotes for $29/month.');
     }
-// Update tax rate when location is selected
-function updateTaxRate() {
-  const location = document.getElementById('taxLocation').value;
-  const customTaxRate = document.getElementById('customTaxRate');
-  
-  if (location === 'custom') {
-    customTaxRate.disabled = false;
-    customTaxRate.value = '';
-  } else if (location === '') {
-    customTaxRate.disabled = true;
-    customTaxRate.value = '';
-  } else {
-    customTaxRate.disabled = true;
-    customTaxRate.value = location;
-  }
-  
-  calculateTax();
-}
 
-// Calculate tax amount
-function calculateTax() {
-  const subtotal = parseFloat(document.getElementById('subtotalAmount').value) || 0;
-  const taxRate = parseFloat(document.getElementById('customTaxRate').value) || 0;
-  
-  const taxAmount = subtotal * (taxRate / 100);
-  const total = subtotal + taxAmount;
-  
-  document.getElementById('taxAmount').value = '$' + taxAmount.toFixed(2);
-  document.getElementById('totalWithTax').textContent = '$' + total.toFixed(2);
-}
-
-// Add tax to quote
-function addTaxToQuote() {
-  const location = document.getElementById('taxLocation');
-  const subtotal = parseFloat(document.getElementById('subtotalAmount').value);
-  const taxRate = parseFloat(document.getElementById('customTaxRate').value);
-  const taxAmount = parseFloat(document.getElementById('taxAmount').value.replace('$', ''));
-  const total = parseFloat(document.getElementById('totalWithTax').textContent.replace('$', ''));
-  
-  if (!subtotal || !taxRate) {
-    alert('Please enter a subtotal and select/enter a tax rate');
-    return;
-  }
-  
-  const locationText = location.options[location.selectedIndex].text;
-  
-  // Add tax breakdown to quote
-  const quoteContent = document.getElementById('quoteContent');
-  const taxSection = `
-    <div class="mt-6 pt-6 border-t-2 border-gray-300">
-      <h3 class="text-xl font-bold text-gray-800 mb-3">Tax Calculation</h3>
-      <div class="space-y-2">
-        <div class="flex justify-between">
-          <span class="text-gray-700">Location:</span>
-          <span class="font-semibold">${locationText}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-700">Subtotal:</span>
-          <span class="font-semibold">$${subtotal.toFixed(2)}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-700">Tax (${taxRate}%):</span>
-          <span class="font-semibold">$${taxAmount.toFixed(2)}</span>
-        </div>
-        <div class="flex justify-between text-xl font-bold text-blue-600 pt-2 border-t-2">
-          <span>Total:</span>
-          <span>$${total.toFixed(2)}</span>
-        </div>
-      </div>
-    </div>
-  `;
-  
-  // Insert tax section before the "valid for 30 days" footer
-  const existingContent = quoteContent.innerHTML;
-  const footerIndex = existingContent.indexOf('<div class="mt-8 pt-6 border-t-2 border-gray-200">');
-  
-  if (footerIndex !== -1) {
-    quoteContent.innerHTML = existingContent.substring(0, footerIndex) + taxSection + existingContent.substring(footerIndex);
-  }
-  
-  // Update current quote text
-  currentQuote = quoteContent.innerText;
-  
-  alert('✅ Tax added to quote successfully!');
-}
-   // Show saved quotes
-async function showSavedQuotes() {
-  if (!window.currentUser) {
-    alert('Please sign in to view saved quotes');
-    return;
-  }
-
-  // Hide other sections
-  document.getElementById('dashboardSection').classList.add('hidden');
-  document.getElementById('quoteSection').classList.add('hidden');
-  document.getElementById('savedQuotesSection').classList.remove('hidden');
-
-  // Load saved quotes
-  try {
-    const quotesQuery = window.firestore.query(
-      window.firestore.collection(window.db, 'quotes'),
-      window.firestore.where('userId', '==', window.currentUser.uid),
-      window.firestore.orderBy('createdAt', 'desc')
-    );
-    
-    const quotesSnapshot = await window.firestore.getDocs(quotesQuery);
-    const container = document.getElementById('savedQuotesListContainer');
-    
-    if (quotesSnapshot.empty) {
-      container.innerHTML = '<div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">No saved quotes yet. Generate your first one!</div>';
-    } else {
-      container.innerHTML = '';
- quotesSnapshot.forEach(doc => {
-  const quote = doc.data();
-  const quoteEl = document.createElement('div');
-  quoteEl.className = 'bg-white rounded-lg shadow-lg p-6';
-  quoteEl.innerHTML = `
-    <div class="flex justify-between items-start mb-4">
-      <div>
-        <h4 class="text-xl font-bold text-gray-800">${quote.clientName || 'Unnamed Client'}</h4>
-        <p class="text-sm text-gray-600">${quote.tradeType} • ${new Date(quote.createdAt).toLocaleDateString()}</p>
-      </div>
-    </div>
-    <div class="whitespace-pre-line text-gray-700 text-sm mb-4">${quote.quoteText.substring(0, 200)}...</div>
-    <div class="text-sm text-gray-500 italic mb-4">${quote.companyName}</div>
-    <button 
-      onclick='viewFullQuote(${JSON.stringify(quote).replace(/'/g, "&#39;")})' 
-      class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700"
-    >
-      📄 View Full Quote
-    </button>
-  `;
-  container.appendChild(quoteEl);
-});
+    // Update tax rate when location is selected
+    function updateTaxRate() {
+      const location = document.getElementById('taxLocation').value;
+      const customTaxRate = document.getElementById('customTaxRate');
+      
+      if (location === 'custom') {
+        customTaxRate.disabled = false;
+        customTaxRate.value = '';
+      } else if (location === '') {
+        customTaxRate.disabled = true;
+        customTaxRate.value = '';
+      } else {
+        customTaxRate.disabled = true;
+        customTaxRate.value = location;
+      }
+      
+      calculateTax();
     }
-  } catch (error) {
-    console.error('Error loading saved quotes:', error);
-    container.innerHTML = '<div class="bg-white rounded-lg shadow p-8 text-center text-red-600">Error loading quotes. Please try again.</div>';
-  }
-}
 
-// Back to dashboard function
-// View full saved quote
-function viewFullQuote(quote) {
-  // Set current quote data
-  currentQuote = quote.quoteText;
-  currentCompanyName = quote.companyName;
-  currentQuoteData = {
-    companyName: quote.companyName,
-    tradeType: quote.tradeType,
-    jobDescription: quote.jobDescription,
-    clientName: quote.clientName
-  };
+    // Calculate tax amount
+    function calculateTax() {
+      const subtotal = parseFloat(document.getElementById('subtotalAmount').value) || 0;
+      const taxRate = parseFloat(document.getElementById('customTaxRate').value) || 0;
+      const taxAmount = subtotal * (taxRate / 100);
+      const total = subtotal + taxAmount;
+      
+      document.getElementById('taxAmount').value = '$' + taxAmount.toFixed(2);
+      document.getElementById('totalWithTax').textContent = '$' + total.toFixed(2);
+    }
 
-  // Hide saved quotes section, show quote section
-  document.getElementById('savedQuotesSection').classList.add('hidden');
-  document.getElementById('quoteSection').classList.remove('hidden');
-  document.getElementById('quoteForm').classList.add('hidden');
-  document.getElementById('loadingSpinner').classList.add('hidden');
-  document.getElementById('quoteDisplay').classList.remove('hidden');
+    // Add tax to quote
+    function addTaxToQuote() {
+      const location = document.getElementById('taxLocation');
+      const subtotal = parseFloat(document.getElementById('subtotalAmount').value);
+      const taxRate = parseFloat(document.getElementById('customTaxRate').value);
+      const taxAmount = parseFloat(document.getElementById('taxAmount').value.replace('$', ''));
+      const total = parseFloat(document.getElementById('totalWithTax').textContent.replace('$', ''));
+      
+      if (!subtotal || !taxRate) {
+        alert('Please enter a subtotal and select/enter a tax rate');
+        return;
+      }
+      
+      const locationText = location.options[location.selectedIndex].text;
+      const quoteContent = document.getElementById('quoteContent');
+      const taxSection = `
+        <div class="mt-6 pt-6 border-t-2 border-gray-300">
+          <h3 class="text-xl font-bold text-gray-800 mb-3">Tax Calculation</h3>
+          <div class="space-y-2">
+            <div class="flex justify-between">
+              <span class="text-gray-700">Location:</span>
+              <span class="font-semibold">${locationText}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-700">Subtotal:</span>
+              <span class="font-semibold">$${subtotal.toFixed(2)}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-700">Tax (${taxRate}%):</span>
+              <span class="font-semibold">$${taxAmount.toFixed(2)}</span>
+            </div>
+            <div class="flex justify-between text-xl font-bold text-blue-600 pt-2 border-t-2">
+              <span>Total:</span>
+              <span>$${total.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      const existingContent = quoteContent.innerHTML;
+      const footerIndex = existingContent.indexOf('<div class="mt-8 pt-6 border-t-2 border-gray-200">');
+      
+      if (footerIndex !== -1) {
+        quoteContent.innerHTML = existingContent.substring(0, footerIndex) + taxSection + existingContent.substring(footerIndex);
+      }
+      
+      currentQuote = quoteContent.innerText;
+      alert('✅ Tax added to quote successfully!');
+    }
 
-  // Display the quote
-  displayQuote(quote.quoteText, quote.companyName, quote.clientName);
+    // Show saved quotes
+    async function showSavedQuotes() {
+      if (!window.currentUser) {
+        alert('Please sign in to view saved quotes');
+        return;
+      }
 
-  // Replace action buttons to show "Back to Saved Quotes" instead of "Save Quote"
-  document.getElementById('quoteActions').innerHTML = `
-    <button onclick="backToDashboard()" class="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700">
-      Back to Dashboard
-    </button>
-    <button onclick="downloadPDF()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700">
-      Download PDF
-    </button>
-    <button onclick="copyQuote()" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
-      Copy to Clipboard
-    </button>
-  `;
+      document.getElementById('dashboardSection').classList.add('hidden');
+      document.getElementById('quoteSection').classList.add('hidden');
+      document.getElementById('savedQuotesSection').classList.remove('hidden');
 
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+      try {
+        const quotesQuery = window.firestore.query(
+          window.firestore.collection(window.db, 'quotes'),
+          window.firestore.where('userId', '==', window.currentUser.uid),
+          window.firestore.orderBy('createdAt', 'desc')
+        );
+        
+        const quotesSnapshot = await window.firestore.getDocs(quotesQuery);
+        const container = document.getElementById('savedQuotesListContainer');
+        
+        if (quotesSnapshot.empty) {
+          container.innerHTML = '<div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">No saved quotes yet. Generate your first one!</div>';
+        } else {
+          container.innerHTML = '';
+          quotesSnapshot.forEach(doc => {
+            const quote = doc.data();
+            const quoteEl = document.createElement('div');
+            quoteEl.className = 'bg-white rounded-lg shadow-lg p-6';
+            quoteEl.innerHTML = `
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <h4 class="text-xl font-bold text-gray-800">${quote.clientName || 'Unnamed Client'}</h4>
+                  <p class="text-sm text-gray-600">${quote.tradeType} • ${new Date(quote.createdAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+              <div class="whitespace-pre-line text-gray-700 text-sm mb-4">${quote.quoteText.substring(0, 200)}...</div>
+              <div class="text-sm text-gray-500 italic mb-4">${quote.companyName}</div>
+              <button 
+                onclick='viewFullQuote(${JSON.stringify(quote).replace(/'/g, "&#39;")})' 
+                class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700"
+              >
+                📄 View Full Quote
+              </button>
+            `;
+            container.appendChild(quoteEl);
+          });
+        }
+      } catch (error) {
+        console.error('Error loading saved quotes:', error);
+        container.innerHTML = '<div class="bg-white rounded-lg shadow p-8 text-center text-red-600">Error loading quotes. Please try again.</div>';
+      }
+    }
+
+    // View full saved quote
+    function viewFullQuote(quote) {
+      currentQuote = quote.quoteText;
+      currentCompanyName = quote.companyName;
+      currentQuoteData = {
+        companyName: quote.companyName,
+        tradeType: quote.tradeType,
+        jobDescription: quote.jobDescription,
+        clientName: quote.clientName
+      };
+
+      document.getElementById('savedQuotesSection').classList.add('hidden');
+      document.getElementById('quoteSection').classList.remove('hidden');
+      document.getElementById('quoteForm').classList.add('hidden');
+      document.getElementById('loadingSpinner').classList.add('hidden');
+      document.getElementById('quoteDisplay').classList.remove('hidden');
+
+      displayQuote(quote.quoteText, quote.companyName, quote.clientName);
+
+      document.getElementById('quoteActions').innerHTML = `
+        <button onclick="backToDashboard()" class="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700">
+          ← Back
+        </button>
+        <button onclick="emailQuote()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700">
+          📧 Email
+        </button>
+        <button onclick="copyQuote()" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
+          📋 Copy
+        </button>
+      `;
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Back to dashboard function
     function backToDashboard() {
-  document.getElementById('savedQuotesSection').classList.add('hidden');
-  document.getElementById('quoteSection').classList.add('hidden');
-  document.getElementById('dashboardSection').classList.remove('hidden');
-  window.loadRecentQuotes();
-}
-
+      document.getElementById('savedQuotesSection').classList.add('hidden');
+      document.getElementById('quoteSection').classList.add('hidden');
+      document.getElementById('dashboardSection').classList.remove('hidden');
+      window.loadRecentQuotes();
+    }
     // Make functions available globally
     window.showLogin = showLogin;
     window.hideLogin = hideLogin;
@@ -1195,15 +1126,15 @@ function viewFullQuote(quote) {
     window.showQuoteForm = showQuoteForm;
     window.generateQuote = generateQuote;
     window.saveQuote = saveQuote;
-    window.downloadPDF = downloadPDF;
+    window.emailQuote = emailQuote;
     window.copyQuote = copyQuote;
     window.upgradeToPro = upgradeToPro;
     window.showSavedQuotes = showSavedQuotes;
-  window.backToDashboard = backToDashboard;
- window.viewFullQuote = viewFullQuote;
- window.updateTaxRate = updateTaxRate;
-window.calculateTax = calculateTax;
-window.addTaxToQuote = addTaxToQuote;
+    window.backToDashboard = backToDashboard;
+    window.viewFullQuote = viewFullQuote;
+    window.updateTaxRate = updateTaxRate;
+    window.calculateTax = calculateTax;
+    window.addTaxToQuote = addTaxToQuote;
   </script>
 
 </body>
