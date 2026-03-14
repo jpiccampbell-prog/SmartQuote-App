@@ -297,12 +297,13 @@
       <div id="quoteDisplay" class="hidden bg-white rounded-lg shadow-lg p-8">
         <div class="flex justify-between items-start mb-6">
           <h4 class="text-2xl font-bold text-gray-800">Your Professional Quote</h4>
-          <button onclick="downloadPDF()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 flex items-center gap-2">
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
-            </svg>
-            Download PDF
-          </button>
+         <button onclick="emailQuote()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 flex items-center gap-2">
+  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+  </svg>
+  Email Quote
+</button>
         </div>
         
         <div id="quoteContent" class="prose max-w-none">
@@ -925,8 +926,6 @@ document.getElementById('quoteActions').innerHTML = `
       }
     }
 
- // Download quote as PDF (mobile-compatible)
-function downloadPDF() {
   // Check if on mobile
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   
@@ -970,8 +969,6 @@ function downloadPDF() {
   }
 }
 
-// Helper function to download as text file
-function downloadAsText(content, filename) {
   const blob = new Blob([content], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -991,7 +988,16 @@ function downloadAsText(content, filename) {
       });
     }
 
-    // Upgrade to Pro placeholder
+    // Email quote function
+    function emailQuote() {
+      const quoteText = document.getElementById('quoteContent').innerText;
+      const subject = `Quote from ${currentCompanyName}`;
+      const body = encodeURIComponent(quoteText);
+      
+      // Open email client with pre-filled quote
+      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${body}`;
+   }
+      // Upgrade to Pro placeholder
     function upgradeToPro() {
       alert('Pro upgrade coming soon! You\'ll get unlimited quotes for $29/month.');
     }
