@@ -45,7 +45,7 @@ exports.handler = async function(event, context) {
         const session = stripeEvent.data.object;
         
         // Get userId from metadata
-        const userId = session.metadata.userId || session.client_reference_id;
+const userId = session.metadata.firebaseUserId || session.metadata.userId || session.client_reference_id;
         
         if (userId) {
           // Update user to Pro in Firestore
