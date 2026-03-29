@@ -508,9 +508,12 @@
           <label class="block text-gray-700 mb-2">Email</label>
           <input type="email" id="loginEmail" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500" autocomplete="email" required>
         </div>
-        <div class="mb-6">
+        <div class="mb-2">
           <label class="block text-gray-700 mb-2">Password</label>
           <input type="password" id="loginPassword" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500" autocomplete="current-password" required>
+        </div>
+        <div class="text-right mb-6">
+          <button type="button" onclick="sendPasswordReset()" class="text-blue-600 hover:underline text-sm">Forgot Password?</button>
         </div>
         <button type="submit" class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 mb-4">Sign In</button>
         <button type="button" onclick="showSignup()" class="w-full text-blue-600 hover:underline py-2">Don't have an account? Sign up</button>
@@ -597,7 +600,7 @@
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, limit, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
     const firebaseConfig = {
@@ -615,7 +618,7 @@
 
     window.auth = auth;
     window.db = db;
-    window.firebaseAuth = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut };
+    window.firebaseAuth = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification };
     window.firestore = { collection, addDoc, query, where, getDocs, orderBy, limit, doc, setDoc };
     window.currentUser = null;
 
@@ -650,7 +653,13 @@
           plan: 'free', quotesThisMonth: 0, quotesLimit: 3,
           createdAt: new Date().toISOString()
         });
-        alert('Account created successfully!');
+        // Send email verification
+        try {
+          await window.firebaseAuth.sendEmailVerification(userCredential.user);
+          alert('✅ Account created!\n\nA verification email has been sent to:\n' + email + '\n\nPlease check your inbox and verify your email before signing in.');
+        } catch (verifyError) {
+          alert('✅ Account created!\n\nWe could not send a verification email. You can resend it after signing in.');
+        }
         hideSignup();
       } catch (error) {
         alert('Error creating account: ' + error.message);
@@ -717,6 +726,30 @@
           <button onclick="logout()" class="bg-white text-blue-600 px-3 py-2 rounded hover:bg-gray-100 font-semibold text-sm whitespace-nowrap">Sign Out</button>
         </div>`;
       loadRecentQuotes();
+
+      // Show email verification banner if not verified
+      const existingBanner = document.getElementById('verifyBanner');
+      if (existingBanner) existingBanner.remove();
+
+      if (window.auth.currentUser && !window.auth.currentUser.emailVerified) {
+        const banner = document.createElement('div');
+        banner.id = 'verifyBanner';
+        banner.className = 'bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-lg flex flex-wrap justify-between items-center gap-3';
+        banner.innerHTML = `
+          <div>
+            <p class="font-semibold text-yellow-800">⚠️ Please verify your email address</p>
+            <p class="text-sm text-yellow-700">Check your inbox for a verification link from SmartQuote.</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="resendVerificationEmail()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded text-sm font-semibold">Resend Email</button>
+            <button onclick="checkVerificationStatus()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-semibold">I Verified ✓</button>
+          </div>
+        `;
+        const dashboardContainer = document.querySelector('#dashboardSection .max-w-6xl');
+        if (dashboardContainer) {
+          dashboardContainer.insertBefore(banner, dashboardContainer.firstChild);
+        }
+      }
     }
 
     function showHero() {
@@ -1338,6 +1371,61 @@
       window.loadRecentQuotes && window.loadRecentQuotes();
     }
 
+    // FORGOT PASSWORD
+    async function sendPasswordReset() {
+      const email = document.getElementById('loginEmail').value.trim();
+      if (!email) {
+        alert('Please enter your email address first, then click Forgot Password.');
+        return;
+      }
+      try {
+        await window.firebaseAuth.sendPasswordResetEmail(window.auth, email);
+        alert('✅ Password reset email sent!\n\nCheck your inbox for a link to reset your password.\n\nIf you don\'t see it, check your spam folder.');
+        hideLogin();
+      } catch (error) {
+        if (error.code === 'auth/user-not-found') {
+          alert('No account found with that email address.\n\nPlease check the email or create a new account.');
+        } else {
+          alert('Error sending reset email: ' + error.message);
+        }
+      }
+    }
+
+    // RESEND VERIFICATION EMAIL
+    async function resendVerificationEmail() {
+      try {
+        const user = window.auth.currentUser;
+        if (!user) { alert('Please sign in first.'); return; }
+        await window.firebaseAuth.sendEmailVerification(user);
+        alert('✅ Verification email sent!\n\nCheck your inbox at ' + user.email + '\n\nIf you don\'t see it, check your spam folder.');
+      } catch (error) {
+        if (error.code === 'auth/too-many-requests') {
+          alert('Too many requests. Please wait a few minutes before trying again.');
+        } else {
+          alert('Error sending verification email: ' + error.message);
+        }
+      }
+    }
+
+    // CHECK IF USER HAS VERIFIED (after clicking verify link)
+    async function checkVerificationStatus() {
+      try {
+        const user = window.auth.currentUser;
+        if (!user) return;
+        // Force refresh the user token to get latest verification status
+        await user.reload();
+        if (user.emailVerified) {
+          alert('✅ Email verified! Your account is fully activated.');
+          const banner = document.getElementById('verifyBanner');
+          if (banner) banner.remove();
+        } else {
+          alert('Your email has not been verified yet.\n\nPlease check your inbox and click the verification link, then try again.');
+        }
+      } catch (error) {
+        alert('Error checking verification: ' + error.message);
+      }
+    }
+
     // Expose globals
     window.showLogin = showLogin;
     window.hideLogin = hideLogin;
@@ -1367,6 +1455,9 @@
     window.addTaxToQuote = addTaxToQuote;
     window.updateProvinceState = updateProvinceState;
     window.updateProfileProvinceState = updateProfileProvinceState;
+    window.sendPasswordReset = sendPasswordReset;
+    window.resendVerificationEmail = resendVerificationEmail;
+    window.checkVerificationStatus = checkVerificationStatus;
   </script>
 </body>
 </html>
