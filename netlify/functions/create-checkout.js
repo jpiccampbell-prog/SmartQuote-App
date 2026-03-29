@@ -9,32 +9,33 @@ exports.handler = async function(event, context) {
   }
 
   try {
-    const { userId, email } = JSON.parse(event.body);
+    const { userId, userEmail, userName } = JSON.parse(event.body);
 
-    if (!userId || !email) {
+    if (!userId || !userEmail) {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: 'Missing userId or email' })
       };
     }
 
-    // Create Stripe checkout session
+    const siteUrl = process.env.URL || 'https://smartquoteapp.netlify.app';
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      line_items: [
-        {
-          price: process.env.STRIPE_PRICE_ID,
-          quantity: 1,
-        },
-      ],
+      line_items: [{
+        price: process.env.STRIPE_PRICE_ID,
+        quantity: 1,
+      }],
       mode: 'subscription',
-      success_url: `${process.env.URL || 'https://smartquoteapp.netlify.app'}?success=true`,
-      cancel_url: `${process.env.URL || 'https://smartquoteapp.netlify.app'}?canceled=true`,
-      customer_email: email,
+      success_url: `${siteUrl}/?upgrade=success`,
+      cancel_url: `${siteUrl}/?upgrade=cancelled`,
+      customer_email: userEmail,
       client_reference_id: userId,
       metadata: {
-        userId: userId
-      }
+        firebaseUserId: userId,
+        userEmail: userEmail
+      },
+      allow_promotion_codes: true
     });
 
     return {
@@ -53,9 +54,9 @@ exports.handler = async function(event, context) {
     console.error('Error creating checkout session:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         error: 'Failed to create checkout session',
-        details: error.message 
+        details: error.message
       })
     };
   }
