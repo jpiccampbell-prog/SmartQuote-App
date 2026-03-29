@@ -2,73 +2,97 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>SmartQuote - AI Quote Generator for Contractors</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<style>
-  /* Prevent horizontal scroll and overflow */
-  html, body {
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100%;
-    position: relative;
-  }
-  
-  /* Mobile-specific adjustments */
-  @media (max-width: 640px) {
-    /* Smaller text sizes on mobile */
-    h1 { font-size: 1.5rem !important; }
-    h2 { font-size: 1.75rem !important; }
-    h3 { font-size: 1.5rem !important; }
-    h4 { font-size: 1.25rem !important; }
-    
-    /* Smaller padding on containers */
-    .container { 
-      padding-left: 1rem !important; 
-      padding-right: 1rem !important; 
+  <style>
+    /* Prevent horizontal scroll */
+    html, body {
+      overflow-x: hidden;
+      width: 100%;
+      max-width: 100%;
+      position: relative;
+      -webkit-text-size-adjust: 100%;
     }
-    
-    /* Stack flex items vertically */
-    .flex { 
-      flex-direction: column !important;
-      gap: 0.5rem !important;
+
+    /* Prevent word overflow */
+    * {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      box-sizing: border-box;
     }
-    
-    /* Full width buttons on mobile */
-    button {
-      width: 100% !important;
-      margin-bottom: 0.5rem;
+
+    /* iOS Safari fix for modals - CRITICAL for iPhone */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      -webkit-overflow-scrolling: touch;
+      padding: 1rem;
     }
-    
-    /* Smaller hero stats */
-    .text-5xl { font-size: 2rem !important; }
-    .text-3xl { font-size: 1.5rem !important; }
-    .text-2xl { font-size: 1.25rem !important; }
-    .text-xl { font-size: 1.125rem !important; }
-  }
-  
-  /* Prevent word overflow */
-  * {
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-  }
-</style>
+
+    .modal-box {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 2rem;
+      width: 100%;
+      max-width: 28rem;
+      max-height: 90vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      position: relative;
+    }
+
+    /* Mobile-specific adjustments - FIXED to not break layouts */
+    @media (max-width: 640px) {
+      h2.hero-title { font-size: 1.75rem !important; }
+      h3.section-title { font-size: 1.5rem !important; }
+
+      /* Only stack explicitly marked flex rows */
+      .mobile-stack {
+        flex-direction: column !important;
+      }
+
+      /* Smaller hero stats on mobile */
+      .stat-number { font-size: 1.5rem !important; }
+
+      /* Make action button rows wrap nicely */
+      .action-buttons {
+        flex-wrap: wrap;
+      }
+      .action-buttons button {
+        flex: 1 1 45%;
+        min-width: 120px;
+      }
+    }
+  </style>
 </head>
 <body class="bg-gray-50">
 
   <!-- HEADER -->
   <header class="bg-blue-600 text-white shadow-lg">
     <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-      <div class="flex items-center gap-2">
-        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+      <div class="flex items-center gap-2 flex-row flex-nowrap">
+        <svg class="w-8 h-8 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
           <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
           <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
         </svg>
-        <h1 class="text-2xl font-bold">SmartQuote</h1>
+        <h1 class="text-2xl font-bold whitespace-nowrap">SmartQuote</h1>
       </div>
       <nav id="headerNav">
-        <button onclick="showLogin()" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-100 font-semibold">
+        <button onclick="showLogin()" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-100 font-semibold text-sm">
           Sign In
         </button>
       </nav>
@@ -76,23 +100,23 @@
   </header>
 
   <!-- HERO SECTION -->
-  <section id="heroSection" class="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-20">
+  <section id="heroSection" class="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-16">
     <div class="container mx-auto px-4 text-center">
-      <h2 class="text-5xl font-bold mb-6">Professional Quotes in Seconds</h2>
-      <p class="text-2xl mb-4">AI-Powered Quote Generator for Contractors</p>
-      <p class="text-xl mb-8 text-blue-100">Save hours on paperwork. Win more jobs with professional quotes.</p>
-      
-      <div class="flex justify-center gap-4 mb-12">
+      <h2 class="hero-title text-4xl sm:text-5xl font-bold mb-6">Professional Quotes in Seconds</h2>
+      <p class="text-xl sm:text-2xl mb-4">AI-Powered Quote Generator for Contractors</p>
+      <p class="text-lg sm:text-xl mb-8 text-blue-100">Save hours on paperwork. Win more jobs with professional quotes.</p>
+
+      <div class="flex flex-wrap justify-center gap-4 mb-12">
         <div class="bg-white/10 backdrop-blur px-6 py-4 rounded-lg">
-          <div class="text-3xl font-bold">30 sec</div>
+          <div class="stat-number text-2xl sm:text-3xl font-bold">30 sec</div>
           <div class="text-sm">Average Quote Time</div>
         </div>
         <div class="bg-white/10 backdrop-blur px-6 py-4 rounded-lg">
-          <div class="text-3xl font-bold">$29/mo</div>
+          <div class="stat-number text-2xl sm:text-3xl font-bold">$29/mo</div>
           <div class="text-sm">Pro Plan</div>
         </div>
         <div class="bg-white/10 backdrop-blur px-6 py-4 rounded-lg">
-          <div class="text-3xl font-bold">Free</div>
+          <div class="stat-number text-2xl sm:text-3xl font-bold">Free</div>
           <div class="text-sm">3 Quotes/Month</div>
         </div>
       </div>
@@ -106,9 +130,8 @@
   <!-- FEATURES SECTION -->
   <section id="featuresSection" class="py-16 bg-white">
     <div class="container mx-auto px-4">
-      <h3 class="text-3xl font-bold text-center mb-12 text-gray-800">Everything You Need to Quote Like a Pro</h3>
-      
-      <div class="grid md:grid-cols-3 gap-8">
+      <h3 class="section-title text-3xl font-bold text-center mb-12 text-gray-800">Everything You Need to Quote Like a Pro</h3>
+      <div class="grid sm:grid-cols-3 gap-8">
         <div class="text-center p-6">
           <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
@@ -118,7 +141,6 @@
           <h4 class="text-xl font-bold mb-2">AI-Powered</h4>
           <p class="text-gray-600">Describe your job in plain English. AI handles the rest.</p>
         </div>
-
         <div class="text-center p-6">
           <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
@@ -128,7 +150,6 @@
           <h4 class="text-xl font-bold mb-2">PDF Download</h4>
           <p class="text-gray-600">Professional PDFs ready to email or print instantly.</p>
         </div>
-
         <div class="text-center p-6">
           <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg class="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
@@ -143,13 +164,11 @@
     </div>
   </section>
 
-  <!-- DASHBOARD SECTION (Hidden initially, shown when logged in) -->
+  <!-- DASHBOARD SECTION -->
   <section id="dashboardSection" class="py-16 bg-gray-50 hidden">
     <div class="container mx-auto px-4 max-w-6xl">
-      
-      <!-- User Info & Stats -->
       <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
-        <div class="flex justify-between items-start">
+        <div class="flex flex-wrap justify-between items-start gap-4">
           <div>
             <h2 class="text-2xl font-bold text-gray-800 mb-2">Welcome, <span id="userName"></span>!</h2>
             <p class="text-gray-600" id="userEmail"></p>
@@ -164,22 +183,19 @@
         </div>
       </div>
 
-      <!-- Quick Actions -->
-      <div class="grid md:grid-cols-2 gap-6 mb-8">
-        <button onclick="showQuoteForm()" class="bg-blue-600 text-white p-8 rounded-lg hover:bg-blue-700 transition text-left">
+      <div class="grid sm:grid-cols-2 gap-6 mb-8">
+        <button onclick="showQuoteForm()" class="bg-blue-600 text-white p-8 rounded-lg hover:bg-blue-700 transition text-left w-full">
           <div class="text-3xl mb-2">✨</div>
           <div class="text-2xl font-bold mb-2">Generate New Quote</div>
           <div class="text-blue-100">Create a professional quote in seconds</div>
         </button>
-        
-        <button onclick="showSavedQuotes()" class="bg-purple-600 text-white p-8 rounded-lg hover:bg-purple-700 transition text-left">
+        <button onclick="showSavedQuotes()" class="bg-purple-600 text-white p-8 rounded-lg hover:bg-purple-700 transition text-left w-full">
           <div class="text-3xl mb-2">📋</div>
           <div class="text-2xl font-bold mb-2">View Saved Quotes</div>
           <div class="text-purple-100">Access your quote history</div>
         </button>
       </div>
 
-      <!-- Recent Quotes -->
       <div class="bg-white rounded-lg shadow-lg p-6">
         <h3 class="text-xl font-bold mb-4">Recent Quotes</h3>
         <div id="recentQuotesList" class="space-y-3">
@@ -188,58 +204,48 @@
       </div>
     </div>
   </section>
-<!-- SAVED QUOTES SECTION -->
+
+  <!-- SAVED QUOTES SECTION -->
   <section id="savedQuotesSection" class="py-16 bg-gray-50 hidden">
     <div class="container mx-auto px-4 max-w-6xl">
-      <div class="flex justify-between items-center mb-8">
+      <div class="flex flex-wrap justify-between items-center mb-8 gap-4">
         <h2 class="text-3xl font-bold text-gray-800">Your Saved Quotes</h2>
         <button onclick="backToDashboard()" class="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700">
           Back to Dashboard
         </button>
       </div>
-      
       <div id="savedQuotesListContainer" class="space-y-4">
         <p class="text-gray-500">Loading quotes...</p>
       </div>
     </div>
-</div>
   </section>
 
   <!-- QUOTE GENERATOR SECTION -->
   <section id="quoteSection" class="py-16 bg-gray-50 hidden">
     <div class="container mx-auto px-4 max-w-4xl">
-     <div class="mb-8">
-  <div class="flex justify-between items-center mb-4">
-    <h3 class="text-3xl font-bold text-gray-800">Generate Your Quote</h3>
-    <button onclick="backToDashboard()" class="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700">
-      Back to Dashboard
-    </button>
-  </div>
-  <p class="text-gray-600 text-center">Describe your job and let AI create a professional quote</p>
-</div>
-```
+      <div class="mb-8">
+        <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
+          <h3 class="text-3xl font-bold text-gray-800">Generate Your Quote</h3>
+          <button onclick="backToDashboard()" class="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700">
+            Back to Dashboard
+          </button>
+        </div>
+        <p class="text-gray-600 text-center">Describe your job and let AI create a professional quote</p>
+      </div>
 
       <!-- QUOTE FORM -->
-      <div id="quoteForm" class="bg-white rounded-lg shadow-lg p-8 mb-8">
+      <div id="quoteForm" class="bg-white rounded-lg shadow-lg p-6 sm:p-8 mb-8">
         <form onsubmit="generateQuote(event)">
           <div class="mb-6">
             <label class="block text-gray-700 font-semibold mb-2">Your Company Name</label>
-            <input 
-              type="text" 
-              id="companyName" 
+            <input type="text" id="companyName"
               class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="ABC Landscaping LLC"
-              required
-            >
+              placeholder="ABC Landscaping LLC" required>
           </div>
-
           <div class="mb-6">
             <label class="block text-gray-700 font-semibold mb-2">Your Trade/Industry</label>
-            <select 
-              id="tradeType" 
-              class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            >
+            <select id="tradeType"
+              class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
               <option value="">Select your trade...</option>
               <option value="landscaping">Landscaping</option>
               <option value="painting">Painting</option>
@@ -254,34 +260,22 @@
               <option value="other">Other</option>
             </select>
           </div>
-
           <div class="mb-6">
             <label class="block text-gray-700 font-semibold mb-2">Job Description</label>
-            <textarea 
-              id="jobDescription" 
-              rows="6"
+            <textarea id="jobDescription" rows="6"
               class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Example: Cut 50ft of grass, trim hedges around house, remove weeds from flower beds, haul away debris"
-              required
-            ></textarea>
+              required></textarea>
             <p class="text-sm text-gray-500 mt-2">💡 Tip: Be specific! Include measurements, materials, and any special requirements.</p>
           </div>
-
           <div class="mb-6">
             <label class="block text-gray-700 font-semibold mb-2">Client Name (Optional)</label>
-            <input 
-              type="text" 
-              id="clientName" 
+            <input type="text" id="clientName"
               class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="John Smith"
-            >
+              placeholder="John Smith">
           </div>
-
-          <button 
-            type="submit" 
-            id="generateBtn"
-            class="w-full bg-blue-600 text-white px-6 py-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition"
-          >
+          <button type="submit" id="generateBtn"
+            class="w-full bg-blue-600 text-white px-6 py-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition">
             ✨ Generate Professional Quote
           </button>
         </form>
@@ -294,166 +288,137 @@
       </div>
 
       <!-- QUOTE DISPLAY -->
-      <div id="quoteDisplay" class="hidden bg-white rounded-lg shadow-lg p-8">
-        <div class="flex justify-between items-start mb-6">
+      <div id="quoteDisplay" class="hidden bg-white rounded-lg shadow-lg p-6 sm:p-8">
+        <div class="flex flex-wrap justify-between items-start mb-6 gap-4">
           <h4 class="text-2xl font-bold text-gray-800">Your Professional Quote</h4>
-         <button onclick="emailQuote()" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 flex items-center gap-2">
-  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
-  </svg>
-  Email Quote
-</button>
+          <button onclick="emailQuote()" class="bg-green-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-700 flex items-center gap-2">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+            </svg>
+            Email Quote
+          </button>
         </div>
-        
-        <div id="quoteContent" class="prose max-w-none">
-          <!-- AI-generated quote will appear here -->
+
+        <div id="quoteContent" class="prose max-w-none"></div>
+
+        <!-- TAX CALCULATOR -->
+        <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 sm:p-6 mb-6 mt-6">
+          <h5 class="text-lg font-bold text-gray-800 mb-4">💰 Add Tax to Quote</h5>
+          <div class="grid sm:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-gray-700 font-semibold mb-2">Location</label>
+              <select id="taxLocation" onchange="updateTaxRate()"
+                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                <option value="">Select Province/State...</option>
+                <optgroup label="🇨🇦 Canada">
+                  <option value="13">Ontario (HST 13%)</option>
+                  <option value="15">Nova Scotia (HST 15%)</option>
+                  <option value="15">New Brunswick (HST 15%)</option>
+                  <option value="15">Newfoundland (HST 15%)</option>
+                  <option value="15">Prince Edward Island (HST 15%)</option>
+                  <option value="5">Alberta (GST 5%)</option>
+                  <option value="12">British Columbia (GST+PST 12%)</option>
+                  <option value="11">Saskatchewan (GST+PST 11%)</option>
+                  <option value="12">Manitoba (GST+PST 12%)</option>
+                  <option value="14.975">Quebec (GST+QST 14.975%)</option>
+                </optgroup>
+                <optgroup label="🇺🇸 United States">
+                  <option value="0">Alaska (0%)</option>
+                  <option value="0">Delaware (0%)</option>
+                  <option value="0">Montana (0%)</option>
+                  <option value="0">New Hampshire (0%)</option>
+                  <option value="0">Oregon (0%)</option>
+                  <option value="4">Alabama (4%)</option>
+                  <option value="6.5">Arizona (6.5%)</option>
+                  <option value="6.5">Arkansas (6.5%)</option>
+                  <option value="7.25">California (7.25%)</option>
+                  <option value="2.9">Colorado (2.9%)</option>
+                  <option value="6.35">Connecticut (6.35%)</option>
+                  <option value="6">Florida (6%)</option>
+                  <option value="4">Georgia (4%)</option>
+                  <option value="4">Hawaii (4%)</option>
+                  <option value="6">Idaho (6%)</option>
+                  <option value="6.25">Illinois (6.25%)</option>
+                  <option value="7">Indiana (7%)</option>
+                  <option value="6">Iowa (6%)</option>
+                  <option value="6.5">Kansas (6.5%)</option>
+                  <option value="6">Kentucky (6%)</option>
+                  <option value="4.45">Louisiana (4.45%)</option>
+                  <option value="5.5">Maine (5.5%)</option>
+                  <option value="6">Maryland (6%)</option>
+                  <option value="6.25">Massachusetts (6.25%)</option>
+                  <option value="6">Michigan (6%)</option>
+                  <option value="6.875">Minnesota (6.875%)</option>
+                  <option value="7">Mississippi (7%)</option>
+                  <option value="4.225">Missouri (4.225%)</option>
+                  <option value="5.5">Nebraska (5.5%)</option>
+                  <option value="6.85">Nevada (6.85%)</option>
+                  <option value="6.625">New Jersey (6.625%)</option>
+                  <option value="5.125">New Mexico (5.125%)</option>
+                  <option value="4">New York (4%)</option>
+                  <option value="4.75">North Carolina (4.75%)</option>
+                  <option value="5">North Dakota (5%)</option>
+                  <option value="5.75">Ohio (5.75%)</option>
+                  <option value="4.5">Oklahoma (4.5%)</option>
+                  <option value="6">Pennsylvania (6%)</option>
+                  <option value="7">Rhode Island (7%)</option>
+                  <option value="6">South Carolina (6%)</option>
+                  <option value="4.5">South Dakota (4.5%)</option>
+                  <option value="7">Tennessee (7%)</option>
+                  <option value="6.25">Texas (6.25%)</option>
+                  <option value="6.1">Utah (6.1%)</option>
+                  <option value="6">Vermont (6%)</option>
+                  <option value="5.3">Virginia (5.3%)</option>
+                  <option value="6.5">Washington (6.5%)</option>
+                  <option value="6">West Virginia (6%)</option>
+                  <option value="5">Wisconsin (5%)</option>
+                  <option value="4">Wyoming (4%)</option>
+                </optgroup>
+                <option value="custom">Custom Rate...</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-gray-700 font-semibold mb-2">Tax Rate (%)</label>
+              <input type="number" id="customTaxRate" step="0.01" min="0" max="100"
+                placeholder="Enter custom rate"
+                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                onchange="calculateTax()">
+            </div>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-gray-700 font-semibold mb-2">Subtotal (Before Tax)</label>
+              <input type="number" id="subtotalAmount" step="0.01" min="0"
+                placeholder="Enter quote amount"
+                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                onchange="calculateTax()">
+            </div>
+            <div>
+              <label class="block text-gray-700 font-semibold mb-2">Tax Amount</label>
+              <input type="text" id="taxAmount" readonly
+                class="w-full px-4 py-2 border rounded-lg bg-gray-100" placeholder="$0.00">
+            </div>
+          </div>
+          <div class="bg-blue-100 p-4 rounded-lg">
+            <div class="flex justify-between items-center">
+              <span class="text-lg font-bold text-gray-800">Total (Including Tax):</span>
+              <span class="text-2xl font-bold text-blue-600" id="totalWithTax">$0.00</span>
+            </div>
+          </div>
+          <button onclick="addTaxToQuote()" class="mt-4 w-full bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700">
+            ✅ Add Tax to Quote
+          </button>
         </div>
-<!-- TAX CALCULATOR -->
-<div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-6">
-  <h5 class="text-lg font-bold text-gray-800 mb-4">💰 Add Tax to Quote</h5>
-  
-  <div class="grid md:grid-cols-2 gap-4 mb-4">
-    <div>
-      <label class="block text-gray-700 font-semibold mb-2">Location</label>
-      <select id="taxLocation" onchange="updateTaxRate()" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-        <option value="">Select Province/State...</option>
-        
-        <!-- Canadian Provinces -->
-        <optgroup label="🇨🇦 Canada">
-          <option value="13">Ontario (HST 13%)</option>
-          <option value="15">Nova Scotia (HST 15%)</option>
-          <option value="15">New Brunswick (HST 15%)</option>
-          <option value="15">Newfoundland (HST 15%)</option>
-          <option value="15">Prince Edward Island (HST 15%)</option>
-          <option value="5">Alberta (GST 5%)</option>
-          <option value="5">British Columbia (GST 5% + PST 7%)</option>
-          <option value="11">Saskatchewan (GST 5% + PST 6%)</option>
-          <option value="12">Manitoba (GST 5% + PST 7%)</option>
-          <option value="14.975">Quebec (GST 5% + QST 9.975%)</option>
-        </optgroup>
-        
-        <!-- US States -->
-        <optgroup label="🇺🇸 United States">
-          <option value="0">Alaska (0%)</option>
-          <option value="0">Delaware (0%)</option>
-          <option value="0">Montana (0%)</option>
-          <option value="0">New Hampshire (0%)</option>
-          <option value="0">Oregon (0%)</option>
-          <option value="4">Alabama (4%)</option>
-          <option value="6.5">Arizona (6.5%)</option>
-          <option value="6.5">Arkansas (6.5%)</option>
-          <option value="7.25">California (7.25%)</option>
-          <option value="2.9">Colorado (2.9%)</option>
-          <option value="6.35">Connecticut (6.35%)</option>
-          <option value="6">Florida (6%)</option>
-          <option value="4">Georgia (4%)</option>
-          <option value="4">Hawaii (4%)</option>
-          <option value="6">Idaho (6%)</option>
-          <option value="6.25">Illinois (6.25%)</option>
-          <option value="7">Indiana (7%)</option>
-          <option value="6">Iowa (6%)</option>
-          <option value="6.5">Kansas (6.5%)</option>
-          <option value="6">Kentucky (6%)</option>
-          <option value="4.45">Louisiana (4.45%)</option>
-          <option value="5.5">Maine (5.5%)</option>
-          <option value="6">Maryland (6%)</option>
-          <option value="6.25">Massachusetts (6.25%)</option>
-          <option value="6">Michigan (6%)</option>
-          <option value="6.875">Minnesota (6.875%)</option>
-          <option value="7">Mississippi (7%)</option>
-          <option value="4.225">Missouri (4.225%)</option>
-          <option value="0">Montana (0%)</option>
-          <option value="5.5">Nebraska (5.5%)</option>
-          <option value="6.85">Nevada (6.85%)</option>
-          <option value="0">New Hampshire (0%)</option>
-          <option value="6.625">New Jersey (6.625%)</option>
-          <option value="5.125">New Mexico (5.125%)</option>
-          <option value="4">New York (4%)</option>
-          <option value="4.75">North Carolina (4.75%)</option>
-          <option value="5">North Dakota (5%)</option>
-          <option value="5.75">Ohio (5.75%)</option>
-          <option value="4.5">Oklahoma (4.5%)</option>
-          <option value="0">Oregon (0%)</option>
-          <option value="6">Pennsylvania (6%)</option>
-          <option value="7">Rhode Island (7%)</option>
-          <option value="6">South Carolina (6%)</option>
-          <option value="4.5">South Dakota (4.5%)</option>
-          <option value="7">Tennessee (7%)</option>
-          <option value="6.25">Texas (6.25%)</option>
-          <option value="6.1">Utah (6.1%)</option>
-          <option value="6">Vermont (6%)</option>
-          <option value="5.3">Virginia (5.3%)</option>
-          <option value="6.5">Washington (6.5%)</option>
-          <option value="6">West Virginia (6%)</option>
-          <option value="5">Wisconsin (5%)</option>
-          <option value="4">Wyoming (4%)</option>
-        </optgroup>
-        
-        <option value="custom">Custom Rate...</option>
-      </select>
-    </div>
-    
-    <div>
-      <label class="block text-gray-700 font-semibold mb-2">Tax Rate (%)</label>
-      <input 
-        type="number" 
-        id="customTaxRate" 
-        step="0.01" 
-        min="0" 
-        max="100"
-        placeholder="Enter custom rate"
-        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-        onchange="calculateTax()"
-      >
-    </div>
-  </div>
-  
-  <div class="grid md:grid-cols-2 gap-4 mb-4">
-    <div>
-      <label class="block text-gray-700 font-semibold mb-2">Subtotal (Before Tax)</label>
-      <input 
-        type="number" 
-        id="subtotalAmount" 
-        step="0.01" 
-        min="0"
-        placeholder="Enter quote amount"
-        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-        onchange="calculateTax()"
-      >
-    </div>
-    
-    <div>
-      <label class="block text-gray-700 font-semibold mb-2">Tax Amount</label>
-      <input 
-        type="text" 
-        id="taxAmount" 
-        readonly
-        class="w-full px-4 py-2 border rounded-lg bg-gray-100"
-        placeholder="$0.00"
-      >
-    </div>
-  </div>
-  
-  <div class="bg-blue-100 p-4 rounded-lg">
-    <div class="flex justify-between items-center">
-      <span class="text-lg font-bold text-gray-800">Total (Including Tax):</span>
-      <span class="text-2xl font-bold text-blue-600" id="totalWithTax">$0.00</span>
-    </div>
-  </div>
-  
-  <button onclick="addTaxToQuote()" class="mt-4 w-full bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700">
-    ✅ Add Tax to Quote
-  </button>
-</div>
-        <div class="mt-8 flex gap-4" id="quoteActions">
-          <button onclick="saveQuote()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700">
+
+        <div class="mt-8 flex flex-wrap gap-3 action-buttons" id="quoteActions">
+          <button onclick="saveQuote()" class="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-700 min-w-0">
             Save Quote
           </button>
-          <button onclick="showQuoteForm()" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
+          <button onclick="showQuoteForm()" class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 min-w-0">
             Generate Another
           </button>
-          <button onclick="copyQuote()" class="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700">
+          <button onclick="copyQuote()" class="flex-1 bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-gray-700 min-w-0">
             Copy to Clipboard
           </button>
         </div>
@@ -461,92 +426,73 @@
     </div>
   </section>
 
-  <!-- LOGIN MODAL -->
-  <div id="loginModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+  <!-- LOGIN MODAL - FIXED FOR iOS -->
+  <div id="loginModal" class="hidden modal-overlay">
+    <div class="modal-box">
       <h2 class="text-2xl font-bold mb-6">Sign In to SmartQuote</h2>
       <form onsubmit="login(event)">
         <div class="mb-4">
           <label class="block text-gray-700 mb-2">Email</label>
-          <input 
-            type="email" 
-            id="loginEmail" 
-            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            required
-          >
+          <input type="email" id="loginEmail"
+            class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            autocomplete="email" required>
         </div>
         <div class="mb-6">
           <label class="block text-gray-700 mb-2">Password</label>
-          <input 
-            type="password" 
-            id="loginPassword" 
-            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            required
-          >
+          <input type="password" id="loginPassword"
+            class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            autocomplete="current-password" required>
         </div>
         <button type="submit" class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 mb-4">
           Sign In
         </button>
-        <button type="button" onclick="showSignup()" class="w-full text-blue-600 hover:underline">
+        <button type="button" onclick="showSignup()" class="w-full text-blue-600 hover:underline py-2">
           Don't have an account? Sign up
         </button>
-        <button type="button" onclick="hideLogin()" class="w-full text-gray-600 hover:underline mt-2">
+        <button type="button" onclick="hideLogin()" class="w-full text-gray-600 hover:underline py-2 mt-1">
           Cancel
         </button>
       </form>
     </div>
   </div>
 
-  <!-- SIGNUP MODAL -->
-  <div id="signupModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+  <!-- SIGNUP MODAL - FIXED FOR iOS -->
+  <div id="signupModal" class="hidden modal-overlay">
+    <div class="modal-box">
       <h2 class="text-2xl font-bold mb-6">Create Your Account</h2>
       <form onsubmit="signup(event)">
         <div class="mb-4">
           <label class="block text-gray-700 mb-2">Your Name</label>
-          <input 
-            type="text" 
-            id="signupName" 
-            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            required
-          >
+          <input type="text" id="signupName"
+            class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            autocomplete="name" required>
         </div>
         <div class="mb-4">
           <label class="block text-gray-700 mb-2">Company Name</label>
-          <input 
-            type="text" 
-            id="signupCompany" 
-            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            required
-          >
+          <input type="text" id="signupCompany"
+            class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            autocomplete="organization" required>
         </div>
         <div class="mb-4">
           <label class="block text-gray-700 mb-2">Email</label>
-          <input 
-            type="email" 
-            id="signupEmail" 
-            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            required
-          >
+          <input type="email" id="signupEmail"
+            class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            autocomplete="email" required>
         </div>
         <div class="mb-6">
           <label class="block text-gray-700 mb-2">Password</label>
-          <input 
-            type="password" 
-            id="signupPassword" 
-            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            required
-            minlength="6"
-          >
+          <input type="password" id="signupPassword"
+            class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            autocomplete="new-password" required minlength="6">
           <p class="text-sm text-gray-500 mt-1">Minimum 6 characters</p>
         </div>
         <button type="submit" class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 mb-4">
           Create Account
         </button>
-        <button type="button" onclick="showLogin()" class="w-full text-blue-600 hover:underline">
+        <button type="button" onclick="showLogin()" class="w-full text-blue-600 hover:underline py-2">
           Already have an account? Sign in
         </button>
-        <button type="button" onclick="hideSignup()" class="w-full text-gray-600 hover:underline mt-2">
+        <button type="button" onclick="hideSignup()" class="w-full text-gray-600 hover:underline py-2 mt-1">
           Cancel
         </button>
       </form>
@@ -567,7 +513,6 @@
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, limit, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCJSQB0f2f7ZM1dbqrjqOm3_9yvd4jywzI",
       authDomain: "smart-quote-app.firebaseapp.com",
@@ -577,24 +522,18 @@
       appId: "1:276669696169:web:f8ebb26c7f24bf709801b8"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Make Firebase available globally
     window.auth = auth;
     window.db = db;
     window.firebaseAuth = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut };
     window.firestore = { collection, addDoc, query, where, getDocs, orderBy, limit, doc, setDoc };
-
-    // Current user data
     window.currentUser = null;
 
-    // Check authentication state
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // User is signed in
         const userDoc = await getDocs(query(collection(db, 'users'), where('uid', '==', user.uid)));
         if (!userDoc.empty) {
           window.currentUser = userDoc.docs[0].data();
@@ -602,112 +541,85 @@
           showDashboard();
         }
       } else {
-        // User is signed out
         window.currentUser = null;
         showHero();
       }
     });
 
-    // Signup function
     window.signup = async function(event) {
       event.preventDefault();
-      
       const name = document.getElementById('signupName').value;
       const company = document.getElementById('signupCompany').value;
       const email = document.getElementById('signupEmail').value;
       const password = document.getElementById('signupPassword').value;
-
       try {
         const userCredential = await window.firebaseAuth.createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-
-        // Create user document
         await window.firestore.setDoc(window.firestore.doc(db, 'users', user.uid), {
-          uid: user.uid,
-          name: name,
-          company: company,
-          email: email,
-          plan: 'free',
-          quotesThisMonth: 0,
-          quotesLimit: 3,
+          uid: user.uid, name, company, email,
+          plan: 'free', quotesThisMonth: 0, quotesLimit: 3,
           createdAt: new Date().toISOString()
         });
-
         alert('Account created successfully!');
         hideSignup();
       } catch (error) {
-        console.error('Signup error:', error);
         alert('Error creating account: ' + error.message);
       }
     };
 
-    // Login function
     window.login = async function(event) {
       event.preventDefault();
-      
       const email = document.getElementById('loginEmail').value;
       const password = document.getElementById('loginPassword').value;
-
       try {
         await window.firebaseAuth.signInWithEmailAndPassword(auth, email, password);
         hideLogin();
       } catch (error) {
-        console.error('Login error:', error);
         alert('Error signing in: ' + error.message);
       }
     };
 
-    // Logout function
     window.logout = async function() {
       try {
         await window.firebaseAuth.signOut(auth);
-        alert('Signed out successfully');
       } catch (error) {
-        console.error('Logout error:', error);
         alert('Error signing out: ' + error.message);
       }
     };
 
-    // Show dashboard
     function showDashboard() {
       document.getElementById('heroSection').classList.add('hidden');
       document.getElementById('featuresSection').classList.add('hidden');
       document.getElementById('dashboardSection').classList.remove('hidden');
       document.getElementById('quoteSection').classList.add('hidden');
+      document.getElementById('savedQuotesSection').classList.add('hidden');
 
-      // Update user info
       document.getElementById('userName').textContent = window.currentUser.name;
       document.getElementById('userEmail').textContent = window.currentUser.email;
       document.getElementById('quotesRemaining').textContent = window.currentUser.quotesLimit - window.currentUser.quotesThisMonth;
 
-      // Update header
       document.getElementById('headerNav').innerHTML = `
-        <div class="flex items-center gap-4">
-          <span class="text-white">${window.currentUser.name}</span>
-          <button onclick="logout()" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-100 font-semibold">
+        <div class="flex items-center gap-3 flex-row flex-nowrap">
+          <span class="text-white text-sm hidden sm:inline">${window.currentUser.name}</span>
+          <button onclick="logout()" class="bg-white text-blue-600 px-3 py-2 rounded hover:bg-gray-100 font-semibold text-sm whitespace-nowrap">
             Sign Out
           </button>
         </div>
       `;
-
       loadRecentQuotes();
     }
 
-    // Show hero
     function showHero() {
       document.getElementById('heroSection').classList.remove('hidden');
       document.getElementById('featuresSection').classList.remove('hidden');
       document.getElementById('dashboardSection').classList.add('hidden');
       document.getElementById('quoteSection').classList.add('hidden');
-
+      document.getElementById('savedQuotesSection').classList.add('hidden');
       document.getElementById('headerNav').innerHTML = `
-        <button onclick="showLogin()" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-100 font-semibold">
-          Sign In
-        </button>
+        <button onclick="showLogin()" class="bg-white text-blue-600 px-4 py-2 rounded hover:bg-gray-100 font-semibold text-sm">Sign In</button>
       `;
     }
 
-    // Load recent quotes
     async function loadRecentQuotes() {
       try {
         const quotesQuery = window.firestore.query(
@@ -716,10 +628,8 @@
           window.firestore.orderBy('createdAt', 'desc'),
           window.firestore.limit(5)
         );
-        
         const quotesSnapshot = await window.firestore.getDocs(quotesQuery);
         const quotesList = document.getElementById('recentQuotesList');
-        
         if (quotesSnapshot.empty) {
           quotesList.innerHTML = '<p class="text-gray-500">No quotes yet. Generate your first one!</p>';
         } else {
@@ -748,92 +658,69 @@
     let currentCompanyName = '';
     let currentQuoteData = {};
 
-    // Show/hide modals
+    // Modal controls - FIXED for iOS (no z-index conflicts)
     function showLogin() {
       document.getElementById('loginModal').classList.remove('hidden');
       document.getElementById('signupModal').classList.add('hidden');
+      document.body.style.overflow = 'hidden';
     }
-
     function hideLogin() {
       document.getElementById('loginModal').classList.add('hidden');
+      document.body.style.overflow = '';
     }
-
     function showSignup() {
       document.getElementById('signupModal').classList.remove('hidden');
       document.getElementById('loginModal').classList.add('hidden');
+      document.body.style.overflow = 'hidden';
     }
-
     function hideSignup() {
       document.getElementById('signupModal').classList.add('hidden');
+      document.body.style.overflow = '';
     }
 
-    // Show quote form
+    // Close modal when tapping overlay background
+    document.getElementById('loginModal').addEventListener('click', function(e) {
+      if (e.target === this) hideLogin();
+    });
+    document.getElementById('signupModal').addEventListener('click', function(e) {
+      if (e.target === this) hideSignup();
+    });
+
     function showQuoteForm() {
-      if (!window.currentUser) {
-        alert('Please sign in to generate quotes');
-        showLogin();
-        return;
-      }
-
+      if (!window.currentUser) { alert('Please sign in to generate quotes'); showLogin(); return; }
       if (window.currentUser.quotesThisMonth >= window.currentUser.quotesLimit) {
-        alert('You\'ve reached your monthly quote limit. Upgrade to Pro for unlimited quotes!');
-        return;
+        alert('You\'ve reached your monthly quote limit. Upgrade to Pro for unlimited quotes!'); return;
       }
-
       document.getElementById('dashboardSection').classList.add('hidden');
       document.getElementById('quoteSection').classList.remove('hidden');
       document.getElementById('quoteForm').classList.remove('hidden');
       document.getElementById('quoteDisplay').classList.add('hidden');
-
-      // Pre-fill company name
       document.getElementById('companyName').value = window.currentUser.company;
-      
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Generate quote using AI
     async function generateQuote(event) {
       event.preventDefault();
-      
       const companyName = document.getElementById('companyName').value;
       const tradeType = document.getElementById('tradeType').value;
       const jobDescription = document.getElementById('jobDescription').value;
       const clientName = document.getElementById('clientName').value || 'Valued Client';
-      
       currentCompanyName = companyName;
       currentQuoteData = { companyName, tradeType, jobDescription, clientName };
-      
-      // Show loading
+
       document.getElementById('quoteForm').classList.add('hidden');
       document.getElementById('loadingSpinner').classList.remove('hidden');
-      
+
       try {
-        // Call our backend function to generate quote
         const response = await fetch('/.netlify/functions/generate-quote', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            companyName,
-            tradeType,
-            jobDescription,
-            clientName
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ companyName, tradeType, jobDescription, clientName })
         });
-        
-        if (!response.ok) {
-          throw new Error('Failed to generate quote');
-        }
-        
+        if (!response.ok) throw new Error('Failed to generate quote');
         const data = await response.json();
-        const quoteText = data.quote;
-        
-        currentQuote = quoteText;
-        
-        // Display quote
-        displayQuote(quoteText, companyName, clientName);
-        
+        currentQuote = data.quote;
+        displayQuote(data.quote, companyName, clientName);
       } catch (error) {
         console.error('Error generating quote:', error);
         alert('Error generating quote. Please try again.');
@@ -842,49 +729,29 @@
       }
     }
 
-    // Display generated quote
     function displayQuote(quoteText, companyName, clientName) {
       const quoteContent = document.getElementById('quoteContent');
-      const today = new Date().toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      });
-      
-      const formattedQuote = `
+      const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      quoteContent.innerHTML = `
         <div class="border-b-2 border-blue-600 pb-4 mb-6">
           <h2 class="text-3xl font-bold text-blue-600">${companyName}</h2>
           <p class="text-gray-600">Professional Quote</p>
           <p class="text-sm text-gray-500">Date: ${today}</p>
           <p class="text-sm text-gray-500">To: ${clientName}</p>
         </div>
-        
-        <div class="whitespace-pre-line text-gray-700">
-${quoteText}
-        </div>
-        
+        <div class="whitespace-pre-line text-gray-700">${quoteText}</div>
         <div class="mt-8 pt-6 border-t-2 border-gray-200">
           <p class="text-sm text-gray-600 italic">This quote is valid for 30 days from the date above.</p>
           <p class="text-sm text-gray-600 italic mt-2">Thank you for considering ${companyName} for your project!</p>
         </div>
       `;
-      
-      quoteContent.innerHTML = formattedQuote;
-      
-      // Hide loading, show quote
       document.getElementById('loadingSpinner').classList.add('hidden');
       document.getElementById('quoteDisplay').classList.remove('hidden');
     }
 
-    // Save quote to database
     async function saveQuote() {
-      if (!window.currentUser) {
-        alert('Please sign in to save quotes');
-        return;
-      }
-
+      if (!window.currentUser) { alert('Please sign in to save quotes'); return; }
       try {
-        // Save quote to Firestore
         await window.firestore.addDoc(window.firestore.collection(window.db, 'quotes'), {
           userId: window.currentUser.uid,
           companyName: currentQuoteData.companyName,
@@ -894,60 +761,53 @@ ${quoteText}
           quoteText: currentQuote,
           createdAt: new Date().toISOString()
         });
-
-        // Update user's quote count
         const userRef = window.firestore.doc(window.db, 'users', window.currentUser.uid);
-        await window.firestore.setDoc(userRef, {
-          quotesThisMonth: window.currentUser.quotesThisMonth + 1
-        }, { merge: true });
-
-alert('✅ Quote saved successfully!');
+        await window.firestore.setDoc(userRef, { quotesThisMonth: window.currentUser.quotesThisMonth + 1 }, { merge: true });
+        alert('✅ Quote saved successfully!');
         window.currentUser.quotesThisMonth++;
-        
-        // Replace the action buttons
         document.getElementById('quoteActions').innerHTML = `
-          <button onclick="showQuoteForm()" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
-            Generate Another
-          </button>
-          <button onclick="showSavedQuotes()" class="flex-1 bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700">
-            📋 Saved Quotes
-          </button>
-          <button onclick="emailQuote()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700">
-            📧 Email
-          </button>
+          <button onclick="showQuoteForm()" class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 min-w-0">Generate Another</button>
+          <button onclick="showSavedQuotes()" class="flex-1 bg-purple-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-purple-700 min-w-0">📋 Saved Quotes</button>
+          <button onclick="emailQuote()" class="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-700 min-w-0">📧 Email</button>
         `;
       } catch (error) {
-        console.error('Error saving quote:', error);
         alert('Error saving quote: ' + error.message);
       }
     }
 
-    // Copy quote to clipboard
     function copyQuote() {
       const quoteText = document.getElementById('quoteContent').innerText;
-      navigator.clipboard.writeText(quoteText).then(() => {
-        alert('✅ Quote copied to clipboard!');
-      });
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(quoteText).then(() => alert('✅ Quote copied to clipboard!'));
+      } else {
+        // iOS fallback
+        const textArea = document.createElement('textarea');
+        textArea.value = quoteText;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try { document.execCommand('copy'); alert('✅ Quote copied to clipboard!'); }
+        catch (e) { alert('Could not copy. Please select and copy manually.'); }
+        document.body.removeChild(textArea);
+      }
     }
 
-    // Email quote function
     function emailQuote() {
       const quoteText = document.getElementById('quoteContent').innerText;
-      const subject = `Quote from ${currentCompanyName}`;
+      const subject = encodeURIComponent(`Quote from ${currentCompanyName}`);
       const body = encodeURIComponent(quoteText);
-      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${body}`;
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
     }
 
-    // Upgrade to Pro placeholder
     function upgradeToPro() {
       alert('Pro upgrade coming soon! You\'ll get unlimited quotes for $29/month.');
     }
 
-    // Update tax rate when location is selected
     function updateTaxRate() {
       const location = document.getElementById('taxLocation').value;
       const customTaxRate = document.getElementById('customTaxRate');
-      
       if (location === 'custom') {
         customTaxRate.disabled = false;
         customTaxRate.value = '';
@@ -958,92 +818,60 @@ alert('✅ Quote saved successfully!');
         customTaxRate.disabled = true;
         customTaxRate.value = location;
       }
-      
       calculateTax();
     }
 
-    // Calculate tax amount
     function calculateTax() {
       const subtotal = parseFloat(document.getElementById('subtotalAmount').value) || 0;
       const taxRate = parseFloat(document.getElementById('customTaxRate').value) || 0;
       const taxAmount = subtotal * (taxRate / 100);
       const total = subtotal + taxAmount;
-      
       document.getElementById('taxAmount').value = '$' + taxAmount.toFixed(2);
       document.getElementById('totalWithTax').textContent = '$' + total.toFixed(2);
     }
 
-    // Add tax to quote
     function addTaxToQuote() {
       const location = document.getElementById('taxLocation');
       const subtotal = parseFloat(document.getElementById('subtotalAmount').value);
       const taxRate = parseFloat(document.getElementById('customTaxRate').value);
       const taxAmount = parseFloat(document.getElementById('taxAmount').value.replace('$', ''));
       const total = parseFloat(document.getElementById('totalWithTax').textContent.replace('$', ''));
-      
-      if (!subtotal || !taxRate) {
-        alert('Please enter a subtotal and select/enter a tax rate');
-        return;
-      }
-      
+      if (!subtotal || !taxRate) { alert('Please enter a subtotal and select/enter a tax rate'); return; }
       const locationText = location.options[location.selectedIndex].text;
       const quoteContent = document.getElementById('quoteContent');
       const taxSection = `
         <div class="mt-6 pt-6 border-t-2 border-gray-300">
           <h3 class="text-xl font-bold text-gray-800 mb-3">Tax Calculation</h3>
           <div class="space-y-2">
-            <div class="flex justify-between">
-              <span class="text-gray-700">Location:</span>
-              <span class="font-semibold">${locationText}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-700">Subtotal:</span>
-              <span class="font-semibold">$${subtotal.toFixed(2)}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-700">Tax (${taxRate}%):</span>
-              <span class="font-semibold">$${taxAmount.toFixed(2)}</span>
-            </div>
-            <div class="flex justify-between text-xl font-bold text-blue-600 pt-2 border-t-2">
-              <span>Total:</span>
-              <span>$${total.toFixed(2)}</span>
-            </div>
+            <div class="flex justify-between"><span class="text-gray-700">Location:</span><span class="font-semibold">${locationText}</span></div>
+            <div class="flex justify-between"><span class="text-gray-700">Subtotal:</span><span class="font-semibold">$${subtotal.toFixed(2)}</span></div>
+            <div class="flex justify-between"><span class="text-gray-700">Tax (${taxRate}%):</span><span class="font-semibold">$${taxAmount.toFixed(2)}</span></div>
+            <div class="flex justify-between text-xl font-bold text-blue-600 pt-2 border-t-2"><span>Total:</span><span>$${total.toFixed(2)}</span></div>
           </div>
         </div>
       `;
-      
       const existingContent = quoteContent.innerHTML;
       const footerIndex = existingContent.indexOf('<div class="mt-8 pt-6 border-t-2 border-gray-200">');
-      
       if (footerIndex !== -1) {
         quoteContent.innerHTML = existingContent.substring(0, footerIndex) + taxSection + existingContent.substring(footerIndex);
       }
-      
       currentQuote = quoteContent.innerText;
       alert('✅ Tax added to quote successfully!');
     }
 
-    // Show saved quotes
     async function showSavedQuotes() {
-      if (!window.currentUser) {
-        alert('Please sign in to view saved quotes');
-        return;
-      }
-
+      if (!window.currentUser) { alert('Please sign in to view saved quotes'); return; }
       document.getElementById('dashboardSection').classList.add('hidden');
       document.getElementById('quoteSection').classList.add('hidden');
       document.getElementById('savedQuotesSection').classList.remove('hidden');
-
       try {
         const quotesQuery = window.firestore.query(
           window.firestore.collection(window.db, 'quotes'),
           window.firestore.where('userId', '==', window.currentUser.uid),
           window.firestore.orderBy('createdAt', 'desc')
         );
-        
         const quotesSnapshot = await window.firestore.getDocs(quotesQuery);
         const container = document.getElementById('savedQuotesListContainer');
-        
         if (quotesSnapshot.empty) {
           container.innerHTML = '<div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">No saved quotes yet. Generate your first one!</div>';
         } else {
@@ -1053,7 +881,7 @@ alert('✅ Quote saved successfully!');
             const quoteEl = document.createElement('div');
             quoteEl.className = 'bg-white rounded-lg shadow-lg p-6';
             quoteEl.innerHTML = `
-              <div class="flex justify-between items-start mb-4">
+              <div class="flex flex-wrap justify-between items-start mb-4 gap-2">
                 <div>
                   <h4 class="text-xl font-bold text-gray-800">${quote.clientName || 'Unnamed Client'}</h4>
                   <p class="text-sm text-gray-600">${quote.tradeType} • ${new Date(quote.createdAt).toLocaleDateString()}</p>
@@ -1061,10 +889,8 @@ alert('✅ Quote saved successfully!');
               </div>
               <div class="whitespace-pre-line text-gray-700 text-sm mb-4">${quote.quoteText.substring(0, 200)}...</div>
               <div class="text-sm text-gray-500 italic mb-4">${quote.companyName}</div>
-              <button 
-                onclick='viewFullQuote(${JSON.stringify(quote).replace(/'/g, "&#39;")})' 
-                class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700"
-              >
+              <button onclick='viewFullQuote(${JSON.stringify(quote).replace(/'/g, "&#39;")})'
+                class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700">
                 📄 View Full Quote
               </button>
             `;
@@ -1072,53 +898,37 @@ alert('✅ Quote saved successfully!');
           });
         }
       } catch (error) {
-        console.error('Error loading saved quotes:', error);
-        container.innerHTML = '<div class="bg-white rounded-lg shadow p-8 text-center text-red-600">Error loading quotes. Please try again.</div>';
+        document.getElementById('savedQuotesListContainer').innerHTML =
+          '<div class="bg-white rounded-lg shadow p-8 text-center text-red-600">Error loading quotes. Please try again.</div>';
       }
     }
 
-    // View full saved quote
     function viewFullQuote(quote) {
       currentQuote = quote.quoteText;
       currentCompanyName = quote.companyName;
-      currentQuoteData = {
-        companyName: quote.companyName,
-        tradeType: quote.tradeType,
-        jobDescription: quote.jobDescription,
-        clientName: quote.clientName
-      };
-
+      currentQuoteData = { companyName: quote.companyName, tradeType: quote.tradeType, jobDescription: quote.jobDescription, clientName: quote.clientName };
       document.getElementById('savedQuotesSection').classList.add('hidden');
       document.getElementById('quoteSection').classList.remove('hidden');
       document.getElementById('quoteForm').classList.add('hidden');
       document.getElementById('loadingSpinner').classList.add('hidden');
       document.getElementById('quoteDisplay').classList.remove('hidden');
-
       displayQuote(quote.quoteText, quote.companyName, quote.clientName);
-
       document.getElementById('quoteActions').innerHTML = `
-        <button onclick="backToDashboard()" class="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700">
-          ← Back
-        </button>
-        <button onclick="emailQuote()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700">
-          📧 Email
-        </button>
-        <button onclick="copyQuote()" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">
-          📋 Copy
-        </button>
+        <button onclick="backToDashboard()" class="flex-1 bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-gray-700 min-w-0">← Back</button>
+        <button onclick="emailQuote()" class="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-700 min-w-0">📧 Email</button>
+        <button onclick="copyQuote()" class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 min-w-0">📋 Copy</button>
       `;
-
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Back to dashboard function
     function backToDashboard() {
       document.getElementById('savedQuotesSection').classList.add('hidden');
       document.getElementById('quoteSection').classList.add('hidden');
       document.getElementById('dashboardSection').classList.remove('hidden');
-      window.loadRecentQuotes();
+      window.loadRecentQuotes && window.loadRecentQuotes();
     }
-    // Make functions available globally
+
+    // Make all functions global
     window.showLogin = showLogin;
     window.hideLogin = hideLogin;
     window.showSignup = showSignup;
@@ -1136,6 +946,5 @@ alert('✅ Quote saved successfully!');
     window.calculateTax = calculateTax;
     window.addTaxToQuote = addTaxToQuote;
   </script>
-
 </body>
 </html>
