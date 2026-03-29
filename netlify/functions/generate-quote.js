@@ -228,6 +228,139 @@ function getPricingForLocation(country, provinceState, trade) {
   return pricingText;
 }
 
+// Fetch contractor's past quotes from Firestore REST API
+// This is the RAG "retrieval" step — pull real past data before generating
+async function getPastQuotesContext(userId, tradeType) {
+  if (!userId || !process.env.FIREBASE_PROJECT_ID) return null;
+
+  try {
+    const projectId = process.env.FIREBASE_PROJECT_ID || 'smart-quote-app';
+
+    // Query Firestore REST API for this user's past quotes
+    const path = `/v1/projects/${projectId}/databases/(default)/documents:runQuery`;
+
+    const queryBody = JSON.stringify({
+      structuredQuery: {
+        from: [{ collectionId: 'quotes' }],
+        where: {
+          fieldFilter: {
+            field: { fieldPath: 'userId' },
+            op: 'EQUAL',
+            value: { stringValue: userId }
+          }
+        },
+        orderBy: [{ field: { fieldPath: 'createdAt' }, direction: 'DESCENDING' }],
+        limit: 8
+      }
+    });
+
+    const options = {
+      hostname: 'firestore.googleapis.com',
+      path: path,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(queryBody)
+      }
+    };
+
+    // Note: For public Firestore rules this works without auth token
+    // If your rules require auth, add: 'Authorization': `Bearer ${process.env.FIREBASE_TOKEN}`
+    const response = await makeRequest(options, queryBody);
+
+    if (!response || !Array.isArray(response)) return null;
+
+    // Parse the quotes from Firestore response format
+    const quotes = [];
+    response.forEach(item => {
+      if (!item.document || !item.document.fields) return;
+      const fields = item.document.fields;
+      quotes.push({
+        tradeType: fields.tradeType?.stringValue || '',
+        quoteText: fields.quoteText?.stringValue || '',
+        clientName: fields.clientName?.stringValue || '',
+        createdAt: fields.createdAt?.stringValue || ''
+      });
+    });
+
+    if (quotes.length === 0) return null;
+
+    // Extract pricing patterns from past quotes
+    // Look for TOTAL, SUBTOTAL, LABOR lines to understand this contractor's pricing style
+    const pricingPatterns = [];
+    const laborRates = [];
+    const totals = [];
+    const warranties = [];
+    const paymentTerms = [];
+    const timelines = [];
+
+    quotes.forEach(quote => {
+      const text = quote.quoteText || '';
+
+      // Extract total amounts
+      const totalMatch = text.match(/(?:SUBTOTAL|TOTAL)[:\s]+\$?([\d,]+(?:\.\d{2})?)/i);
+      if (totalMatch) totals.push(parseFloat(totalMatch[1].replace(',', '')));
+
+      // Extract labor rates
+      const laborMatch = text.match(/LABOR[:\s]+\$?([\d,]+(?:\.\d{2})?)/i);
+      if (laborMatch) laborRates.push(parseFloat(laborMatch[1].replace(',', '')));
+
+      // Extract warranty terms
+      const warrantyMatch = text.match(/WARRANTY[:\s\n]+([^\n]+)/i);
+      if (warrantyMatch) warranties.push(warrantyMatch[1].trim());
+
+      // Extract payment terms
+      const paymentMatch = text.match(/PAYMENT TERMS[:\s\n]+([^\n]+)/i);
+      if (paymentMatch) paymentTerms.push(paymentMatch[1].trim());
+
+      // Extract timeline
+      const timelineMatch = text.match(/(?:TIMELINE|ESTIMATED TIME)[:\s\n]+([^\n]+)/i);
+      if (timelineMatch) timelines.push(timelineMatch[1].trim());
+
+      // Note the trade type
+      if (quote.tradeType) pricingPatterns.push(quote.tradeType);
+    });
+
+    // Build context summary for Claude
+    let context = `\nTHIS CONTRACTOR'S PAST PRICING PATTERNS (${quotes.length} past quotes analyzed):\n`;
+
+    if (totals.length > 0) {
+      const avgTotal = totals.reduce((a, b) => a + b, 0) / totals.length;
+      const minTotal = Math.min(...totals);
+      const maxTotal = Math.max(...totals);
+      context += `- Their typical quote range: $${minTotal.toFixed(0)} – $${maxTotal.toFixed(0)}\n`;
+      context += `- Their average quote total: $${avgTotal.toFixed(0)}\n`;
+    }
+
+    if (laborRates.length > 0) {
+      const avgLabor = laborRates.reduce((a, b) => a + b, 0) / laborRates.length;
+      context += `- Their typical labor charge: $${avgLabor.toFixed(0)}\n`;
+    }
+
+    if (warranties.length > 0) {
+      // Use the most recent warranty wording
+      context += `- Their standard warranty: "${warranties[0]}"\n`;
+    }
+
+    if (paymentTerms.length > 0) {
+      context += `- Their preferred payment terms: "${paymentTerms[0]}"\n`;
+    }
+
+    if (timelines.length > 0) {
+      context += `- Their typical timeline format: "${timelines[0]}"\n`;
+    }
+
+    context += `\nIMPORTANT: Match this contractor's established pricing style and terms in the new quote. If their past quotes show higher or lower prices than the market rates above, lean toward their actual pricing history.\n`;
+
+    return context;
+
+  } catch (error) {
+    // Never fail the whole quote just because past quotes couldn't be fetched
+    console.error('Could not fetch past quotes (non-fatal):', error.message);
+    return null;
+  }
+}
+
 // Helper to make HTTPS requests
 function makeRequest(options, data) {
   return new Promise((resolve, reject) => {
@@ -261,8 +394,12 @@ exports.handler = async function(event, context) {
     const userCountry = country || 'us';
     const userLocation = location || '';
 
-    // Get real pricing data for this location
+    // RAG STEP 1: Get real pricing data for this location
     const pricingContext = getPricingForLocation(userCountry, userLocation, tradeType || 'handyman');
+
+    // RAG STEP 2: Get this contractor's past quotes to learn their pricing style
+    // Fails silently — never blocks quote generation
+    const pastQuotesContext = await getPastQuotesContext(userId, tradeType);
 
     let prompt = '';
 
@@ -314,16 +451,17 @@ ${notes ? '\nNOTES:\n[Include the additional notes]' : ''}
 Return ONLY the formatted quote content. Do not change any prices or add commentary.`;
 
     } else {
-      // AI QUOTE MODE: AI generates the full quote using location pricing
+      // AI QUOTE MODE: AI generates the full quote using location pricing + past quote learning
       prompt = `You are a professional ${tradeType} contractor quote generator with expertise in ${userLocation ? userLocation + ',' : ''} ${userCountry === 'canada' ? 'Canada' : 'USA'} market rates.
 
 ${pricingContext}
-
+${pastQuotesContext || ''}
 IMPORTANT PRICING RULES:
 - Use the real market rates above as your baseline for all pricing
 - All prices must be in ${userCountry === 'canada' ? 'Canadian Dollars (CAD)' : 'US Dollars (USD)'}
 - Make pricing competitive but realistic for ${userLocation || 'this area'}
 - Factor in local labor costs shown above
+${pastQuotesContext ? '- PRIORITIZE this contractor\'s own past pricing patterns over the generic market rates when they differ' : ''}
 
 Create a detailed, professional quote for the following job:
 Job Description: ${jobDescription}
