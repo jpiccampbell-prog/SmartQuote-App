@@ -154,8 +154,13 @@
           </div>
           <div class="text-right">
             <div class="text-3xl font-bold text-blue-600" id="quotesRemaining">3</div>
-            <div class="text-sm text-gray-600">Quotes Remaining This Month</div>
-            <button onclick="upgradeToPro()" class="mt-2 bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700">Upgrade to Pro - $29/mo</button>
+            <div class="text-sm text-gray-600" id="quotesLabel">Quotes Remaining This Month</div>
+            <div id="upgradeBtn">
+              <button onclick="upgradeToPro()" class="mt-2 bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700">⬆️ Upgrade to Pro - $29.99/mo</button>
+            </div>
+            <div id="proBadge" class="hidden mt-2">
+              <span class="bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-sm font-bold">⭐ PRO MEMBER</span>
+            </div>
           </div>
         </div>
       </div>
@@ -395,8 +400,9 @@
         </div>
 
         <div class="mt-6 flex flex-wrap gap-3 action-buttons no-print" id="quoteActions">
-          <button onclick="saveQuote()" class="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-700 min-w-0">Save Quote</button>
-          <button onclick="showQuoteForm('ai')" class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 min-w-0">New Quote</button>
+          <button onclick="saveQuote()" class="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-700 min-w-0">Save</button>
+          <button onclick="downloadPDF()" class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-3 rounded-lg font-semibold min-w-0">📄 PDF</button>
+          <button onclick="showQuoteForm('ai')" class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 min-w-0">New</button>
           <button onclick="copyQuote()" class="flex-1 bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-gray-700 min-w-0">Copy</button>
         </div>
       </div>
@@ -692,7 +698,11 @@
       document.getElementById('dashboardSection').classList.remove('hidden');
       document.getElementById('userName').textContent = window.currentUser.name;
       document.getElementById('userEmail').textContent = window.currentUser.email;
-      document.getElementById('quotesRemaining').textContent = window.currentUser.quotesLimit - window.currentUser.quotesThisMonth;
+      const isPro = window.currentUser.plan === 'pro';
+      document.getElementById('quotesRemaining').textContent = isPro ? '∞' : Math.max(0, window.currentUser.quotesLimit - window.currentUser.quotesThisMonth);
+      document.getElementById('quotesLabel').textContent = isPro ? 'Unlimited Quotes (Pro)' : 'Quotes Remaining This Month';
+      document.getElementById('upgradeBtn').classList.toggle('hidden', isPro);
+      document.getElementById('proBadge').classList.toggle('hidden', !isPro);
       const locEl = document.getElementById('userLocation');
       if (window.currentUser.provinceState) {
         locEl.textContent = `📍 ${window.currentUser.provinceState}, ${window.currentUser.country === 'canada' ? 'Canada' : 'USA'}`;
@@ -1036,8 +1046,9 @@
       document.getElementById('quoteDisplay').classList.remove('hidden');
       // Reset action buttons
       document.getElementById('quoteActions').innerHTML = `
-        <button onclick="saveQuote()" class="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-700 min-w-0">Save Quote</button>
-        <button onclick="showQuoteForm('ai')" class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 min-w-0">New Quote</button>
+        <button onclick="saveQuote()" class="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-700 min-w-0">Save</button>
+        <button onclick="downloadPDF()" class="flex-1 ${window.currentUser?.plan === 'pro' ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-gray-400 hover:bg-gray-500'} text-white px-4 py-3 rounded-lg font-semibold min-w-0">${window.currentUser?.plan === 'pro' ? '📄 PDF' : '🔒 PDF (Pro)'}</button>
+        <button onclick="showQuoteForm('ai')" class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 min-w-0">New</button>
         <button onclick="copyQuote()" class="flex-1 bg-gray-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-gray-700 min-w-0">Copy</button>
       `;
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1067,6 +1078,7 @@
         window.currentUser.quotesThisMonth++;
         alert('Quote saved successfully!');
         document.getElementById('quoteActions').innerHTML = `
+          <button onclick="downloadPDF()" class="flex-1 ${window.currentUser?.plan === 'pro' ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-gray-400 hover:bg-gray-500'} text-white px-4 py-3 rounded-lg font-semibold min-w-0">${window.currentUser?.plan === 'pro' ? '📄 PDF' : '🔒 PDF (Pro)'}</button>
           <button onclick="showQuoteForm('ai')" class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-blue-700 min-w-0">New Quote</button>
           <button onclick="showSavedQuotes()" class="flex-1 bg-purple-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-purple-700 min-w-0">Saved Quotes</button>
           <button onclick="emailQuote()" class="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-700 min-w-0">Email</button>
@@ -1099,7 +1111,100 @@
       window.location.href = `mailto:?subject=${encodeURIComponent('Quote from ' + currentCompanyName)}&body=${encodeURIComponent(quoteText)}`;
     }
 
-    function upgradeToPro() { alert('Pro upgrade coming soon! Unlimited quotes for $29/month.'); }
+    async function upgradeToPro() {
+      if (!window.currentUser) { showLogin(); return; }
+      if (window.currentUser.plan === 'pro') {
+        alert('You are already on the Pro plan! Enjoy unlimited quotes.'); return;
+      }
+      const btns = document.querySelectorAll('[onclick="upgradeToPro()"]');
+      btns.forEach(b => { b.textContent = 'Redirecting...'; b.disabled = true; });
+      try {
+        const response = await fetch('/.netlify/functions/create-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: window.currentUser.uid,
+            userEmail: window.currentUser.email,
+            userName: window.currentUser.name
+          })
+        });
+        const data = await response.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          throw new Error(data.error || 'Could not create checkout session');
+        }
+      } catch (error) {
+        alert('Error starting checkout: ' + error.message);
+        btns.forEach(b => { b.textContent = 'Upgrade to Pro - $29.99/mo'; b.disabled = false; });
+      }
+    }
+
+    function downloadPDF() {
+      if (window.currentUser?.plan !== 'pro') {
+        alert('PDF download is a Pro feature.\n\nUpgrade to Pro for $29.99/month to unlock:\n✅ Unlimited quotes\n✅ PDF download');
+        return;
+      }
+      try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const quoteText = document.getElementById('quoteContent').innerText;
+        const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        doc.setFillColor(37, 99, 235);
+        doc.rect(0, 0, 220, 30, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(20);
+        doc.setFont('helvetica', 'bold');
+        doc.text('SmartQuote', 15, 20);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Professional Quote', 155, 20);
+        doc.setTextColor(0, 0, 0);
+        const lines = doc.splitTextToSize(quoteText, 180);
+        let y = 42;
+        lines.forEach(line => {
+          if (y > 270) { doc.addPage(); y = 20; }
+          const isHeader = /^(PROJECT DESCRIPTION|LINE ITEMS|LABOR|MATERIALS|SUBTOTAL|TOTAL|PAYMENT TERMS|TIMELINE|WARRANTY|NOTES):/i.test(line);
+          doc.setFont('helvetica', isHeader ? 'bold' : 'normal');
+          doc.setFontSize(isHeader ? 11 : 10);
+          doc.text(line, 15, y);
+          y += isHeader ? 8 : 6;
+        });
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(8);
+          doc.setTextColor(150, 150, 150);
+          doc.text('Generated by SmartQuote — ' + today, 15, 285);
+          doc.text('Page ' + i + ' of ' + pageCount, 178, 285);
+        }
+        const fileName = 'Quote-' + (currentCompanyName || 'SmartQuote').replace(/\s+/g, '-') + '-' + new Date().toISOString().split('T')[0] + '.pdf';
+        doc.save(fileName);
+      } catch (error) {
+        console.error('PDF error:', error);
+        alert('Error generating PDF. Please try printing instead.');
+      }
+    }
+
+    function checkStripeRedirect() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const upgrade = urlParams.get('upgrade');
+      if (upgrade === 'success') {
+        window.history.replaceState({}, document.title, '/');
+        setTimeout(() => {
+          alert('🎉 Welcome to SmartQuote Pro!\n\nYour account has been upgraded:\n✅ Unlimited quotes\n✅ PDF download\n\nEnjoy!');
+          if (window.currentUser) {
+            window.currentUser.plan = 'pro';
+            window.currentUser.quotesLimit = 9999;
+            if (window.showDashboard) window.showDashboard();
+          }
+        }, 2000);
+      } else if (upgrade === 'cancelled') {
+        window.history.replaceState({}, document.title, '/');
+        setTimeout(() => alert('Upgrade cancelled. You can upgrade anytime from your dashboard.'), 500);
+      }
+    }
+    checkStripeRedirect();
 
     function updateTaxRate() {
       const location = document.getElementById('taxLocation').value;
@@ -1253,6 +1358,7 @@
     window.printQuote = printQuote;
     window.copyQuote = copyQuote;
     window.upgradeToPro = upgradeToPro;
+    window.downloadPDF = downloadPDF;
     window.showSavedQuotes = showSavedQuotes;
     window.backToDashboard = backToDashboard;
     window.viewFullQuote = viewFullQuote;
